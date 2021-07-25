@@ -2,8 +2,6 @@
 
 Simple system for writing HTML/XML as Go code. Better-performing replacement for `html/template` and `text/template`. Vaguely inspired by JS library https://github.com/mitranim/prax, but uses a different design.
 
-API docs: https://pkg.go.dev/github.com/mitranim/gax.
-
 Features / benefits:
 
   * No weird special language to learn.
@@ -14,9 +12,19 @@ Features / benefits:
   * Benefit from static typing.
   * Benefit from Go code analysis.
   * Benefit from Go performance.
-  * Tiny and dependency-free.
+  * Tiny and dependency-free (only stdlib).
+
+## TOC
+
+* [Usage](#usage)
+* [Performance](#performance)
+* [Changelog](#changelog)
+* [License](#license)
+* [Misc](#misc)
 
 ## Usage
+
+API docs: https://pkg.go.dev/github.com/mitranim/gax.
 
 ```golang
 package main
@@ -90,6 +98,16 @@ Benchmark_static_template-12       6006633       193.4 ns/op       480 B/op     
 Benchmark_dynamic_gax-12             69954       17127 ns/op      8872 B/op      162 allocs/op
 Benchmark_dynamic_template-12         9532      131470 ns/op     61791 B/op     1373 allocs/op
 ```
+
+## Changelog
+
+### `v0.1.1`
+
+Converted methods `.WriteTo(*[]byte)` methods to `.Append([]byte) []byte` for better compliance with established interfaces.
+
+### `v0.1.0`
+
+Init.
 
 ## License
 

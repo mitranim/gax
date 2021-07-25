@@ -63,7 +63,7 @@ Mostly for internal use. Writes HTML/XML attributes. Supports HTML special
 cases; see `Bui.Attr`.
 */
 func (self *Bui) Attrs(attrs ...Attr) {
-	A(attrs).WriteTo((*[]byte)(self))
+	*self = Bui(A(attrs).Append([]byte(*self)))
 }
 
 /*
@@ -74,7 +74,7 @@ adjusted for spec compliance. Automatically escapes the attribute value.
 Sanity-checks the attribute name. Using an invalid name causes a panic.
 */
 func (self *Bui) Attr(attr Attr) {
-	attr.WriteTo((*[]byte)(self))
+	*self = Bui(attr.Append([]byte(*self)))
 }
 
 // Mostly for internal use. Writes children via `Bui.Child`.

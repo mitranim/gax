@@ -7,17 +7,16 @@ Short for "attributes". List of arbitrary HTML/XML attributes. Usually passed to
 type A []Attr
 
 // Mostly for internal use.
-func (self A) WriteTo(buf *[]byte) {
+func (self A) Append(buf []byte) []byte {
 	for _, val := range self {
-		val.WriteTo(buf)
+		buf = val.Append(buf)
 	}
+	return buf
 }
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self A) String() string {
-	var buf []byte
-	self.WriteTo(&buf)
-	return NonEscWri(buf).String()
+	return NonEscWri(self.Append(nil)).String()
 }
 
 /*
@@ -40,9 +39,9 @@ spec compliance, or the attr may be omitted entirely.
 func (self Attr) Value() string { return self[1] }
 
 // Mostly for internal use.
-func (self Attr) WriteTo(buf *[]byte) {
+func (self Attr) Append(buf []byte) []byte {
 	if self == (Attr{}) {
-		return
+		return buf
 	}
 
 	key, val := self.Name(), self.Value()
@@ -51,21 +50,21 @@ func (self Attr) WriteTo(buf *[]byte) {
 	if Bool.Has(key) {
 		// Dumb hack. Should revise.
 		if val == "false" {
-			return
+			return buf
 		}
 		val = ""
 	}
 
-	*buf = append(*buf, ` `...)
-	*buf = append(*buf, key...)
-	*buf = append(*buf, `="`...)
-	_, _ = (*AttrWri)(buf).WriteString(val)
-	*buf = append(*buf, `"`...)
+	buf = append(buf, ` `...)
+	buf = append(buf, key...)
+	buf = append(buf, `="`...)
+	_, _ = (*AttrWri)(&buf).WriteString(val)
+	buf = append(buf, `"`...)
+	return buf
 }
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self Attr) String() string {
-	var buf []byte
-	self.WriteTo(&buf)
-	return NonEscWri(buf).String()
+	return NonEscWri(self.Append(nil)).String()
+}
 }
