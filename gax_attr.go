@@ -67,4 +67,3 @@ func (self Attr) Append(buf []byte) []byte {
 func (self Attr) String() string {
 	return NonEscWri(self.Append(nil)).String()
 }
-}
