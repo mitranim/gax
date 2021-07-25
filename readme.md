@@ -77,7 +77,7 @@ type Dat struct {
 
 For mostly-static templates, Gax loses to `html/template` but remains more than fast enough. For anything dynamic, Gax seems to perform several times better. The more complicated a template is, the better it gets.
 
-The following output is from `gax_bench_test.go`, ran via:
+The benchmark in `gax_bench_test.go` is _intentionally naive_, avoiding some Gax optimizations in order to mimic actual user code.
 
 ```sh
 go test -bench . -benchmem
@@ -85,10 +85,10 @@ go test -bench . -benchmem
 
 ```
 cpu: Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz
-Benchmark_static_gax-12           327079     3289 ns/op     1544 B/op     25 allocs/op
-Benchmark_static_template-12     6301851    193.9 ns/op      480 B/op      3 allocs/op
-Benchmark_dynamic_gax-12          203464     5842 ns/op     2608 B/op     49 allocs/op
-Benchmark_dynamic_template-12      39686    30669 ns/op    12862 B/op    297 allocs/op
+Benchmark_static_gax-12             331562        3404 ns/op      1544 B/op       25 allocs/op
+Benchmark_static_template-12       6006633       193.4 ns/op       480 B/op        3 allocs/op
+Benchmark_dynamic_gax-12             69954       17127 ns/op      8872 B/op      162 allocs/op
+Benchmark_dynamic_template-12         9532      131470 ns/op     61791 B/op     1373 allocs/op
 ```
 
 ## License

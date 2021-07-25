@@ -35,14 +35,14 @@ func Test_dynamic_gax(_ *testing.T) {
 	bui := Bui(Doctype)
 	renderDynamic(bui.E, mockDat)
 	eq(
-		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2></div></body></html>`,
+		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 		bui.String(),
 	)
 }
 
 func Test_dynamic_template(_ *testing.T) {
 	eq(
-		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2></div></body></html>`,
+		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 		templateToString(tplDynamic, mockDat),
 	)
 }
@@ -68,7 +68,7 @@ func Benchmark_static_template(b *testing.B) {
 
 func Benchmark_dynamic_gax(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		bui := make(Bui, 0, 1024)
+		bui := Bui(Doctype)
 		renderDynamic(bui.E, mockDat)
 	}
 }
@@ -113,6 +113,27 @@ var mockDat = MockDat{
 		Post{Page: Page{Title: `post 1`, Path: `/posts/post1.html`}, IsListed: true},
 		Post{Page: Page{Title: `post 2`, Path: `/posts/post2.html`}, IsListed: true},
 		Post{Page: Page{Title: `post 3`, Path: `/posts/post3.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 4`, Path: `/posts/post4.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 5`, Path: `/posts/post5.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 6`, Path: `/posts/post6.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 7`, Path: `/posts/post7.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 8`, Path: `/posts/post8.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 9`, Path: `/posts/post9.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 10`, Path: `/posts/post10.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 11`, Path: `/posts/post11.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 12`, Path: `/posts/post12.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 13`, Path: `/posts/post13.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 14`, Path: `/posts/post14.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 15`, Path: `/posts/post15.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 16`, Path: `/posts/post16.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 17`, Path: `/posts/post17.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 18`, Path: `/posts/post18.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 19`, Path: `/posts/post19.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 20`, Path: `/posts/post20.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 21`, Path: `/posts/post21.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 22`, Path: `/posts/post22.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 23`, Path: `/posts/post23.html`}, IsListed: true},
+		Post{Page: Page{Title: `post 24`, Path: `/posts/post24.html`}, IsListed: true},
 	},
 }
 

@@ -14,38 +14,36 @@ func ExampleBui() {
 		Posts []string
 	}
 
-	render := func(E gax.E, dat Dat) {
-		E(`html`, A{{`lang`, `en`}}, func() {
-			E(`head`, nil, func() {
-				E(`meta`, A{{`charset`, `utf-8`}})
-				E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
-
-				// Use normal Go conditionals.
-				if dat.Title != "" {
-					E(`title`, nil, dat.Title)
-				} else {
-					E(`title`, nil, `test markup`)
-				}
-			})
-
-			E(`body`, nil, func() {
-				E(`h1`, A{{`class`, `title`}}, `Posts`)
-
-				// Use normal Go loops.
-				for _, post := range dat.Posts {
-					E(`h2`, nil, post)
-				}
-			})
-		})
-	}
-
-	mockDat := Dat{
+	dat := Dat{
 		Title: `Posts`,
 		Posts: []string{`Post0`, `Post1`},
 	}
 
 	bui := gax.Bui(gax.Doctype)
-	render(bui.E, mockDat)
+	E := bui.E
+
+	E(`html`, A{{`lang`, `en`}}, func() {
+		E(`head`, nil, func() {
+			E(`meta`, A{{`charset`, `utf-8`}})
+			E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
+
+			// Use normal Go conditionals.
+			if dat.Title != "" {
+				E(`title`, nil, dat.Title)
+			} else {
+				E(`title`, nil, `test markup`)
+			}
+		})
+
+		E(`body`, nil, func() {
+			E(`h1`, A{{`class`, `title`}}, `Posts`)
+
+			// Use normal Go loops.
+			for _, post := range dat.Posts {
+				E(`h2`, nil, post)
+			}
+		})
+	})
 
 	fmt.Println(bui)
 	// Output:
