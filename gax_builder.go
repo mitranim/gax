@@ -20,7 +20,7 @@ Special rules for children:
 	* `[]interface{}` is recursively traversed.
 	* `string` or `[]bytes` is escaped via `TextWri`.
 	* `String` or `Bytes` is written as-is, without escaping.
-	* `func()` or `func(*Bui)` is called for side effects.
+	* `func()` or `func(E)` or `func(*Bui)` is called for side effects.
 	* Other values are stringified.
 */
 func (self *Bui) E(tag string, attrs A, children ...interface{}) {
@@ -110,6 +110,11 @@ func (self *Bui) Child(val interface{}) {
 	case func():
 		if val != nil {
 			val()
+		}
+
+	case func(E):
+		if val != nil {
+			val(self.E)
 		}
 
 	case func(*Bui):

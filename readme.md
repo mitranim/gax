@@ -101,6 +101,10 @@ Benchmark_dynamic_template-12         9532      131470 ns/op     61791 B/op     
 
 ## Changelog
 
+### `v0.1.4`
+
+`Bui.Child` also supports `func(E)`.
+
 ### `v0.1.3`
 
 Added `Bui.With` and `Ebui`.
