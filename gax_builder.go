@@ -1,6 +1,15 @@
 package gax
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
+
+// Same as `Bui{}.With(fun)` but marginally shorter/cleaner.
+func Ebui(fun func(E E)) (bui Bui) {
+	fun(bui.E)
+	return bui
+}
 
 /*
 Short for "builder". Has methods for generating HTML/XML markup, declarative but
@@ -91,37 +100,54 @@ special rules.
 func (self *Bui) Child(val interface{}) {
 	switch val := val.(type) {
 	case nil:
-
-	case []interface{}:
-		self.Children(val...)
-
-	case String:
-		self.NonEscString(string(val))
-
-	case string:
-		self.EscString(val)
-
-	case Bytes:
-		self.NonEscBytes(val)
-
-	case []byte:
-		self.EscBytes(val)
-
 	case func():
 		if val != nil {
 			val()
 		}
-
 	case func(E):
 		if val != nil {
 			val(self.E)
 		}
-
 	case func(*Bui):
 		if val != nil {
 			val(self)
 		}
-
+	case []interface{}:
+		self.Children(val...)
+	case String:
+		self.NonEscString(string(val))
+	case Bytes:
+		self.NonEscBytes(val)
+	case string:
+		self.EscString(val)
+	case []byte:
+		self.EscBytes(val)
+	case bool:
+		self.bool(val)
+	case uint:
+		self.uint(val)
+	case uint8:
+		self.uint8(val)
+	case uint16:
+		self.uint16(val)
+	case uint32:
+		self.uint32(val)
+	case uint64:
+		self.uint64(val)
+	case int:
+		self.int(val)
+	case int8:
+		self.int8(val)
+	case int16:
+		self.int16(val)
+	case int32:
+		self.int32(val)
+	case int64:
+		self.int64(val)
+	case float32:
+		self.float32(val)
+	case float64:
+		self.float64(val)
 	default:
 		self.Unknown(val)
 	}
@@ -186,8 +212,22 @@ func (self Bui) Bytes() []byte { return self }
 // Free cast to `string`.
 func (self Bui) String() string { return bytesToMutableString(self) }
 
-// Same as `Bui{}.With(fun)` but marginally shorter/cleaner.
-func Ebui(fun func(E E)) (bui Bui) {
-	fun(bui.E)
-	return bui
+func (self *Bui) bool(val bool)     { *self = Bui(strconv.AppendBool(*(*[]byte)(self), val)) }
+func (self *Bui) uint(val uint)     { self.uint64(uint64(val)) }
+func (self *Bui) uint8(val uint8)   { self.uint64(uint64(val)) }
+func (self *Bui) uint16(val uint16) { self.uint64(uint64(val)) }
+func (self *Bui) uint32(val uint32) { self.uint64(uint64(val)) }
+func (self *Bui) uint64(val uint64) { *self = Bui(strconv.AppendUint(*(*[]byte)(self), val, 10)) }
+func (self *Bui) int(val int)       { self.int64(int64(val)) }
+func (self *Bui) int8(val int8)     { self.int64(int64(val)) }
+func (self *Bui) int16(val int16)   { self.int64(int64(val)) }
+func (self *Bui) int32(val int32)   { self.int64(int64(val)) }
+func (self *Bui) int64(val int64)   { *self = Bui(strconv.AppendInt(*(*[]byte)(self), val, 10)) }
+
+func (self *Bui) float32(val float32) {
+	*self = Bui(strconv.AppendFloat(*(*[]byte)(self), float64(val), floatVerb, -1, 32))
+}
+
+func (self *Bui) float64(val float64) {
+	*self = Bui(strconv.AppendFloat(*(*[]byte)(self), val, floatVerb, -1, 64))
 }

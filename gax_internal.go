@@ -7,6 +7,9 @@ import (
 	"unsafe"
 )
 
+// Match the `fmt` default for consistency.
+const floatVerb = 'g'
+
 func newStringSet(vals ...string) stringSet {
 	set := make(stringSet, len(vals))
 	for _, val := range vals {
