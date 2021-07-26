@@ -101,6 +101,14 @@ Benchmark_dynamic_template-12         9532      131470 ns/op     61791 B/op     
 
 ## Changelog
 
+### `v0.1.3`
+
+Added `Bui.With` and `Ebui`.
+
+### `v0.1.2`
+
+Minor syntactic bugfix.
+
 ### `v0.1.1`
 
 Converted methods `.WriteTo(*[]byte)` methods to `.Append([]byte) []byte` for better compliance with established interfaces.

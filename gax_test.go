@@ -86,6 +86,17 @@ func Test_Bui_Child(t *testing.T) {
 	})
 }
 
+func Test_Bui_With(_ *testing.T) {
+	fun := func(E E) { E(`html`, A{{`lang`, `en`}}) }
+	eqs(`<html lang="en"></html>`, Bui{}.With(fun))
+	eqs(`<!doctype html><html lang="en"></html>`, Bui(Doctype).With(fun))
+}
+
+func Test_Ebui(_ *testing.T) {
+	fun := func(E E) { E(`html`, A{{`lang`, `en`}}) }
+	eqs(`<html lang="en"></html>`, Ebui(fun))
+}
+
 // Incomplete test; should also verify zero-alloc.
 func Test_Bui_Bytes(_ *testing.T) {
 	eqs(`<div>hello world!</div>`, Bui(`<div>hello world!</div>`))

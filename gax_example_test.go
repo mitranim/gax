@@ -50,6 +50,28 @@ func ExampleBui() {
 	// <!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:;base64,="><title>Posts</title></head><body><h1 class="title">Posts</h1><h2>Post0</h2><h2>Post1</h2></body></html>
 }
 
+func ExampleBui_With() {
+	type A = gax.A
+	type E = gax.E
+
+	fmt.Println(gax.Bui(gax.Doctype).With(func(E E) {
+		E(`html`, A{{`lang`, `en`}})
+	}))
+	// Output:
+	// <!doctype html><html lang="en"></html>
+}
+
+func ExampleEbui() {
+	type A = gax.A
+	type E = gax.E
+
+	fmt.Println(gax.Ebui(func(E E) {
+		E(`span`, A{{`aria-hidden`, `true`}}, `🔥`)
+	}))
+	// Output:
+	// <span aria-hidden="true">🔥</span>
+}
+
 func ExampleDoctype() {
 	bui := gax.Bui(gax.Doctype)
 	bui.E(`html`, nil)

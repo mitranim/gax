@@ -166,8 +166,23 @@ func (self *Bui) Unknown(val interface{}) {
 	fmt.Fprint((*TextWri)(self), val)
 }
 
+/*
+Shortcut for calling a function with `Bui.E` and returning the same `Bui`
+instance.
+*/
+func (self Bui) With(fun func(E)) Bui {
+	fun(self.E)
+	return self
+}
+
 // Free cast to `[]byte`.
 func (self Bui) Bytes() []byte { return self }
 
 // Free cast to `string`.
 func (self Bui) String() string { return bytesToMutableString(self) }
+
+// Same as `Bui{}.With(fun)` but marginally shorter/cleaner.
+func Ebui(fun func(E E)) (bui Bui) {
+	fun(bui.E)
+	return bui
+}
