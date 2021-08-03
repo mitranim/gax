@@ -7,27 +7,56 @@ import (
 	"testing"
 )
 
+func Test_E_and_F(_ *testing.T) {
+	bui := F(
+		Str(Doctype),
+		E(`html`, AP(`lang`, `en`),
+			E(`head`, nil,
+				E(`meta`, AP(`charset`, `utf-8`)),
+				E(`meta`, AP(`http-equiv`, `X-UA-Compatible`, `content`, `IE=edge`)),
+				E(`meta`, AP(`name`, `viewport`, `content`, `width=device-width, initial-scale=1`)),
+				E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`)),
+				E(`title`, nil, `test markup`),
+			),
+			E(`body`, AP(`class`, `stretch-to-viewport`),
+				E(`h1`, AP(`class`, `title`), `mock markup`),
+				E(`div`, AP(`class`, `main`), `hello world!`),
+			),
+		),
+	)
+
+	eqs(
+		strings.TrimSpace(`
+			<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>
+		`),
+		bui,
+	)
+}
+
 func Test_Bui_E(_ *testing.T) {
 	bui := Bui(Doctype)
 	E := bui.E
 
-	E(`html`, A{{`lang`, `en`}}, func() {
+	E(`html`, AP(`lang`, `en`), func() {
 		E(`head`, nil, func() {
-			E(`meta`, A{{`charset`, `utf-8`}})
-			E(`meta`, A{{`http-equiv`, `X-UA-Compatible`}, {`content`, `IE=edge`}})
-			E(`meta`, A{{`name`, `viewport`}, {`content`, `width=device-width, initial-scale=1`}})
-			E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
+			E(`meta`, AP(`charset`, `utf-8`))
+			E(`meta`, AP(`http-equiv`, `X-UA-Compatible`, `content`, `IE=edge`))
+			E(`meta`, AP(`name`, `viewport`, `content`, `width=device-width, initial-scale=1`))
+			E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`))
 			E(`title`, nil, `test markup`)
 		})
-		E(`body`, A{{`class`, `stretch-to-viewport`}}, func() {
-			E(`h1`, A{{`class`, `title`}}, `mock markup`)
-			E(`div`, A{{`class`, `main`}}, `hello world!`)
+		E(`body`, AP(`class`, `stretch-to-viewport`), func() {
+			E(`h1`, AP(`class`, `title`), `mock markup`)
+			E(`div`, AP(`class`, `main`), `hello world!`)
 		})
 	})
 
-	eqs(strings.TrimSpace(`
-		<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>
-	`), bui)
+	eqs(
+		strings.TrimSpace(`
+			<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>
+		`),
+		bui,
+	)
 }
 
 func Test_Bui_Attr(_ *testing.T) {
@@ -87,26 +116,23 @@ func Test_Bui_Child(t *testing.T) {
 	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, `<one>&"</one>`)
 	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, []byte(`<one>&"</one>`))
 
-	test(`<div></div>`, func(E E) { E(`div`, nil) })
-	test(`str`, func(b *Bui) { b.EscString(`str`) })
+	test(`<div></div>`, func(b *Bui) { b.E(`div`, nil) })
+	test(`str`, func(b *Bui) { b.T(`str`) })
 
 	t.Run("do_not_escape_special_type", func(_ *testing.T) {
-		test(`<one>&"</one>`, String(`<one>&"</one>`))
-		test(`<one>&"</one>`, Bytes(`<one>&"</one>`))
-		test(`<a>one</a><bui>two</bui><c>three</c>`, String(`<a>one</a><bui>two</bui><c>three</c>`))
-		test(`<a>one</a><bui>two</bui><c>three</c>`, Bytes(`<a>one</a><bui>two</bui><c>three</c>`))
+		test(`<one>&"</one>`, Str(`<one>&"</one>`))
+		test(`<one>&"</one>`, Bui(`<one>&"</one>`))
+		test(`<a>one</a><bui>two</bui><c>three</c>`, Str(`<a>one</a><bui>two</bui><c>three</c>`))
+		test(`<a>one</a><bui>two</bui><c>three</c>`, Bui(`<a>one</a><bui>two</bui><c>three</c>`))
 	})
 }
 
-func Test_Bui_With(_ *testing.T) {
-	fun := func(E E) { E(`html`, A{{`lang`, `en`}}) }
-	eqs(`<html lang="en"></html>`, Bui{}.With(fun))
-	eqs(`<!doctype html><html lang="en"></html>`, Bui(Doctype).With(fun))
-}
-
-func Test_Ebui(_ *testing.T) {
-	fun := func(E E) { E(`html`, A{{`lang`, `en`}}) }
-	eqs(`<html lang="en"></html>`, Ebui(fun))
+func Test_F(_ *testing.T) {
+	fun := func(b *Bui) { b.E(`html`, AP(`lang`, `en`)) }
+	eqs(
+		`<!doctype html><html lang="en"></html>`,
+		F(Str(Doctype), fun),
+	)
 }
 
 // Incomplete test; should also verify zero-alloc.
@@ -122,100 +148,135 @@ func Test_Bui_String(_ *testing.T) {
 
 func Test_AttrWri_Write(_ *testing.T) {
 	var wri AttrWri
-	wri.Write([]byte("A&B\u00a0C\"D<E>F"))
+	tryInt(wri.Write([]byte("A&B\u00a0C\"D<E>F")))
 	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
 func Test_AttrWri_WriteString(_ *testing.T) {
 	var wri AttrWri
-	wri.WriteString("A&B\u00a0C\"D<E>F")
+	tryInt(wri.WriteString("A&B\u00a0C\"D<E>F"))
 	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
 func Test_AttrWri_WriteRune(_ *testing.T) {
 	var wri AttrWri
 
-	wri.WriteRune('A')
+	tryInt(wri.WriteRune('A'))
 	eqs(`A`, wri)
 
-	wri.WriteRune('&')
+	tryInt(wri.WriteRune('&'))
 	eqs(`A&amp;`, wri)
 
-	wri.WriteRune('B')
+	tryInt(wri.WriteRune('B'))
 	eqs(`A&amp;B`, wri)
 
-	wri.WriteRune('\u00a0')
+	tryInt(wri.WriteRune('\u00a0'))
 	eqs(`A&amp;B&nbsp;`, wri)
 
-	wri.WriteRune('C')
+	tryInt(wri.WriteRune('C'))
 	eqs(`A&amp;B&nbsp;C`, wri)
 
-	wri.WriteRune('"')
+	tryInt(wri.WriteRune('"'))
 	eqs(`A&amp;B&nbsp;C&quot;`, wri)
 
-	wri.WriteRune('D')
+	tryInt(wri.WriteRune('D'))
 	eqs(`A&amp;B&nbsp;C&quot;D`, wri)
 
-	wri.WriteRune('<')
+	tryInt(wri.WriteRune('<'))
 	eqs(`A&amp;B&nbsp;C&quot;D<`, wri)
 
-	wri.WriteRune('E')
+	tryInt(wri.WriteRune('E'))
 	eqs(`A&amp;B&nbsp;C&quot;D<E`, wri)
 
-	wri.WriteRune('>')
+	tryInt(wri.WriteRune('>'))
 	eqs(`A&amp;B&nbsp;C&quot;D<E>`, wri)
 
-	wri.WriteRune('F')
+	tryInt(wri.WriteRune('F'))
 	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
 func Test_TextWri_Write(_ *testing.T) {
 	var wri TextWri
-	wri.Write([]byte("A&B\u00a0C\"D<E>F"))
+	tryInt(wri.Write([]byte("A&B\u00a0C\"D<E>F")))
 	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
 }
 
 func Test_TextWri_WriteString(_ *testing.T) {
 	var wri TextWri
-	wri.WriteString("A&B\u00a0C\"D<E>F")
+	tryInt(wri.WriteString("A&B\u00a0C\"D<E>F"))
 	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
 }
 
 func Test_TextWri_WriteRune(_ *testing.T) {
 	var wri TextWri
 
-	wri.WriteRune('A')
+	tryInt(wri.WriteRune('A'))
 	eqs(`A`, wri)
 
-	wri.WriteRune('&')
+	tryInt(wri.WriteRune('&'))
 	eqs(`A&amp;`, wri)
 
-	wri.WriteRune('B')
+	tryInt(wri.WriteRune('B'))
 	eqs(`A&amp;B`, wri)
 
-	wri.WriteRune('\u00a0')
+	tryInt(wri.WriteRune('\u00a0'))
 	eqs(`A&amp;B&nbsp;`, wri)
 
-	wri.WriteRune('C')
+	tryInt(wri.WriteRune('C'))
 	eqs(`A&amp;B&nbsp;C`, wri)
 
-	wri.WriteRune('"')
+	tryInt(wri.WriteRune('"'))
 	eqs(`A&amp;B&nbsp;C"`, wri)
 
-	wri.WriteRune('D')
+	tryInt(wri.WriteRune('D'))
 	eqs(`A&amp;B&nbsp;C"D`, wri)
 
-	wri.WriteRune('<')
+	tryInt(wri.WriteRune('<'))
 	eqs(`A&amp;B&nbsp;C"D&lt;`, wri)
 
-	wri.WriteRune('E')
+	tryInt(wri.WriteRune('E'))
 	eqs(`A&amp;B&nbsp;C"D&lt;E`, wri)
 
-	wri.WriteRune('>')
+	tryInt(wri.WriteRune('>'))
 	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;`, wri)
 
-	wri.WriteRune('F')
+	tryInt(wri.WriteRune('F'))
 	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
+}
+
+func TestElem_GoString(t *testing.T) {
+	eq(
+		"E(`div`, AP(`class`, `one`), `two`, 10, `three`)",
+		fmt.Sprintf(
+			`%#v`,
+			E(`div`, AP(`class`, `one`), `two`, []interface{}{10, `three`}),
+		),
+	)
+}
+
+func TestA_GoString(t *testing.T) {
+	eq(
+		"AP(`one`, `two`, `three`, `four`)",
+		fmt.Sprintf(
+			`%#v`,
+			AP(`one`, `two`, `three`, `four`).A(Attr{}).A(Attr{}).A(Attr{}),
+		),
+	)
+}
+
+func TestVac(t *testing.T) {
+	eq(nil, Vac(nil))
+	eq(nil, Vac((*string)(nil)))
+	eq(nil, Vac([]interface{}{}))
+	eq(nil, Vac([]interface{}{nil}))
+	eq(nil, Vac([]interface{}{nil, (*string)(nil)}))
+	eq(nil, Vac([]byte(nil)))
+	eq(nil, Vac(Bui(nil)))
+
+	eq("", Vac(""))
+	eq(0, Vac(0))
+	eq([]interface{}{""}, Vac([]interface{}{""}))
+	eq([]interface{}{0}, Vac([]interface{}{0}))
 }
 
 func eqs(exp string, act []byte) {
@@ -224,6 +285,12 @@ func eqs(exp string, act []byte) {
 
 func eq(exp, act interface{}) {
 	if !reflect.DeepEqual(exp, act) {
-		panic(fmt.Errorf("expected:\n%#v\ngot:\n%#v\n", exp, act))
+		panic(fmt.Errorf("expected:\n%+v\ngot:\n%+v\n", exp, act))
+	}
+}
+
+func tryInt(_ int, err error) {
+	if err != nil {
+		panic(err)
 	}
 }

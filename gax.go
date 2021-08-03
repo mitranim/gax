@@ -2,8 +2,7 @@
 Simple system for writing HTML as Go code. Better-performing replacement for
 `html/template` and `text/template`; see benchmarks in readme.
 
-Vaguely inspired by JS library https://github.com/mitranim/prax,
-but uses a different design.
+Vaguely inspired by JS library https://github.com/mitranim/prax.
 
 Features / benefits:
 
@@ -18,15 +17,30 @@ Features / benefits:
 	* Tiny and dependency-free.
 
 The API is bloated with "just in case" public exports, but 99% of what you want
-is `Bui` and `Bui.E`. See the `Bui` example below.
+is `E`, `F`, `Bui`, and `Bui.E`. See the `Bui` example below.
 */
 package gax
 
 /*
-Shortcut for prepending HTML doctype. Use `gax.Bui(gax.Doctype)` to create a
-document-level HTML builder.
+Shortcut for prepending HTML doctype. Use `Bui(Doctype)` to create a
+document-level HTML builder, or `Str(Doctype)` to prepend this in `F`.
 */
 const Doctype = `<!doctype html>`
+
+/*
+Short for "renderer". On children implementing this interface, the `Render`
+method is called for side effects, instead of stringifying the child.
+*/
+type Ren interface{ Render(*Bui) }
+
+/*
+Indicates pre-escaped markup. Children of this type are written as-is without
+additional HTML/XML escaping. For bytes, use `Bui`.
+*/
+type Str string
+
+// Implement `Ren`. Appends itself without HTML/XML escaping.
+func (self Str) Render(bui *Bui) { bui.NonEscString(string(self)) }
 
 /*
 Set of known HTML boolean attributes. Can be modified via `Bool.Add` and
@@ -56,16 +70,27 @@ var Void = newStringSet(
 )
 
 /*
-Indicates pre-escaped markup. When using `Bui.E`, values of type `Bytes` are
-written as-is without additional HTML/XML escaping. For strings, see `String`.
+Short for "vacate", "vacuum", "vacuous". Takes a "child" intended for `E` or
+`F`. If the child is empty, returns `nil`, otherwise returns the child as-is.
+Empty is defined as containing only nils. Just like `E` and `F`, this
+recursively traverses `[]interface{}`.
 */
-type Bytes []byte
+func Vac(val interface{}) interface{} {
+	inout := val
 
-/*
-Indicates pre-escaped markup. When using `Bui.E`, Values of type `String` are
-written as-is without additional HTML/XML escaping. For bytes, see `Bytes`.
-*/
-type String string
+	switch val := val.(type) {
+	case []interface{}:
+		for _, val := range val {
+			if Vac(val) != nil {
+				return inout
+			}
+		}
+		return nil
 
-// Signature of the method `Bui.E`. Makes it convenient to pass around.
-type E = func(string, A, ...interface{})
+	default:
+		if !isNil(val) {
+			return inout
+		}
+		return nil
+	}
+}

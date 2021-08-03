@@ -1,6 +1,6 @@
 ## Overview
 
-Simple system for writing HTML/XML as Go code. Better-performing replacement for `html/template` and `text/template`. Vaguely inspired by JS library https://github.com/mitranim/prax, but uses a different design.
+Simple system for writing HTML/XML as Go code. Better-performing replacement for `html/template` and `text/template`. Vaguely inspired by JS library https://github.com/mitranim/prax.
 
 Features / benefits:
 
@@ -31,43 +31,50 @@ package main
 
 import (
   "fmt"
-  "github.com/mitranim/gax"
+
+  x "github.com/mitranim/gax"
 )
 
-type A = gax.A
+var (
+  E  = x.E
+  AP = x.AP
+)
 
 func main() {
-  bui := gax.Bui(gax.Doctype)
-
-  render(bui.E, mockDat)
-
-  fmt.Println(bui)
+  fmt.Println(Page(mockDat))
   // <!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:;base64,="><title>Posts</title></head><body><h1 class="title">Posts</h1><h2>Post0</h2><h2>Post1</h2></body></html>
 }
 
-func render(E gax.E, dat Dat) {
-  E(`html`, A{{`lang`, `en`}}, func() {
-    E(`head`, nil, func() {
-      E(`meta`, A{{`charset`, `utf-8`}})
-      E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
+func Page(dat Dat) x.Bui {
+  return x.F(
+    x.Str(x.Doctype),
+    E(`html`, AP(`lang`, `en`),
+      E(`head`, nil,
+        E(`meta`, AP(`charset`, `utf-8`)),
+        E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`)),
 
-      // Use normal Go conditionals.
-      if dat.Title != "" {
-        E(`title`, nil, dat.Title)
-      } else {
-        E(`title`, nil, `test markup`)
-      }
-    })
+        // Use normal Go conditionals.
+        func(b *x.Bui) {
+          if dat.Title != "" {
+            b.E(`title`, nil, dat.Title)
+          } else {
+            b.E(`title`, nil, `test markup`)
+          }
+        },
+      ),
 
-    E(`body`, nil, func() {
-      E(`h1`, A{{`class`, `title`}}, `Posts`)
+      E(`body`, nil,
+        E(`h1`, AP(`class`, `title`), `Posts`),
 
-      // Use normal Go loops.
-      for _, post := range dat.Posts {
-        E(`h2`, nil, post)
-      }
-    })
-  })
+        // Use normal Go loops.
+        func(b *x.Bui) {
+          for _, post := range dat.Posts {
+            b.E(`h2`, nil, post)
+          }
+        },
+      ),
+    ),
+  )
 }
 
 var mockDat = Dat{
@@ -83,9 +90,11 @@ type Dat struct {
 
 ## Performance
 
-For mostly-static templates, Gax loses to `html/template` but remains more than fast enough. For anything dynamic, Gax seems to perform several times better. The more complicated a template is, the better it gets.
+Gax easily beats `text/template` and `html/template`. The more dynamic a template is, the better it gets.
 
-The benchmark in `gax_bench_test.go` is _intentionally naive_, avoiding some Gax optimizations in order to mimic actual user code.
+In the static benchmark, Gax renders the markup just once into a global variable, benchmarking the writing performance of `bytes.Buffer` for "fairness" with templating. This is recommended for all completely static markup.
+
+The dynamic benchmark is intentionally naive, avoiding some Gax optimizations such as static prerender, to mimic simple user code.
 
 ```sh
 go test -bench . -benchmem
@@ -93,13 +102,17 @@ go test -bench . -benchmem
 
 ```
 cpu: Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz
-Benchmark_static_gax-12             331562        3404 ns/op      1544 B/op       25 allocs/op
-Benchmark_static_template-12       6006633       193.4 ns/op       480 B/op        3 allocs/op
-Benchmark_dynamic_gax-12             69954       17127 ns/op      8872 B/op      162 allocs/op
-Benchmark_dynamic_template-12         9532      131470 ns/op     61791 B/op     1373 allocs/op
+Benchmark_static_gax-12           12817749       88.78 ns/op       384 B/op        1 allocs/op
+Benchmark_static_template-12       6270380       193.4 ns/op       480 B/op        3 allocs/op
+Benchmark_dynamic_gax-12             68360       16726 ns/op      9320 B/op      140 allocs/op
+Benchmark_dynamic_template-12         9432      130345 ns/op     61847 B/op     1376 allocs/op
 ```
 
 ## Changelog
+
+### `v0.2.0`
+
+API revision. Now supports both the append-only style via `Bui.E` and the expression style via free `E`. Mix and match for simpler code.
 
 ### `v0.1.4`
 

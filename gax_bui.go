@@ -2,24 +2,32 @@ package gax
 
 import (
 	"fmt"
-	"strconv"
+	"reflect"
 )
 
-// Same as `Bui{}.With(fun)` but marginally shorter/cleaner.
-func Ebui(fun func(E E)) (bui Bui) {
-	fun(bui.E)
-	return bui
+/*
+Short for "fragment" or "document fragment". Shortcut for making `Bui` with
+these children.
+*/
+func F(vals ...interface{}) (bui Bui) {
+	bui.F(vals)
+	return
 }
 
 /*
-Short for "builder". Has methods for generating HTML/XML markup, declarative but
-efficient. See `Bui.E` for 99% of the API you will use.
+Short for "builder" or "builder for UI". Has methods for generating HTML/XML
+markup, declarative but efficient. See `E`, `F`, and `Bui.E` for 99% of the API
+you will use.
+
+When used as a child (see `Bui.E`, `Bui.F`, `Bui.Child`), this also indicates
+pre-escaped markup, appending itself to another `Bui` without HTML/XML
+escaping. For strings, see `Str`.
 */
 type Bui []byte
 
 /*
-99% of the API of this library. Short for "element" or "HTML element". Writes an
-HTML/XML tag, with attributes and inner content.
+One of the primary APIs. Counterpart to the function `E`. Short for "element"
+or "HTML element". Writes an HTML/XML tag, with attributes and inner content.
 
 For a runnable example, see the definition of `Bui`.
 
@@ -27,14 +35,15 @@ Special rules for children:
 
 	* `nil` is ignored.
 	* `[]interface{}` is recursively traversed.
-	* `string` or `[]bytes` is escaped via `TextWri`.
-	* `String` or `Bytes` is written as-is, without escaping.
-	* `func()` or `func(E)` or `func(*Bui)` is called for side effects.
-	* Other values are stringified.
+	* `func()`, `func(*Bui)`, or `Ren.Render` is called for side effects.
+	* Other values are stringified and escaped via `TextWri`.
+
+To write text without escaping, use `Str` for strings and `Bui` for byte
+slices.
 */
-func (self *Bui) E(tag string, attrs A, children ...interface{}) {
+func (self *Bui) E(tag string, attrs Attrs, children ...interface{}) {
 	self.Begin(tag, attrs)
-	self.Children(children...)
+	self.F(children...)
 	self.End(tag)
 }
 
@@ -43,7 +52,7 @@ Mostly for internal use. Writes the beginning of an HTML/XML element, with
 optional attrs. Supports HTML special cases; see `Bui.Attrs`. Sanity-checks the
 tag. Using an invalid tag causes a panic.
 */
-func (self *Bui) Begin(tag string, attrs A) {
+func (self *Bui) Begin(tag string, attrs Attrs) {
 	validTag(tag)
 
 	self.NonEscString(`<`)
@@ -71,9 +80,7 @@ func (self *Bui) End(tag string) {
 Mostly for internal use. Writes HTML/XML attributes. Supports HTML special
 cases; see `Bui.Attr`.
 */
-func (self *Bui) Attrs(attrs ...Attr) {
-	*self = Bui(A(attrs).Append([]byte(*self)))
-}
+func (self *Bui) Attrs(vals ...Attr) { *self = Bui(Attrs(vals).Append(*self)) }
 
 /*
 Mostly for internal use. Writes an HTML/XML attribute, preceded with a space.
@@ -82,12 +89,11 @@ adjusted for spec compliance. Automatically escapes the attribute value.
 
 Sanity-checks the attribute name. Using an invalid name causes a panic.
 */
-func (self *Bui) Attr(attr Attr) {
-	*self = Bui(attr.Append([]byte(*self)))
-}
+func (self *Bui) Attr(val Attr) { *self = Bui(val.Append(*self)) }
 
-// Mostly for internal use. Writes children via `Bui.Child`.
-func (self *Bui) Children(vals ...interface{}) {
+// Writes multiple children via `Bui.Child`. Like the "tail part" of `Bui.E`.
+// Counterpart to the function `F`.
+func (self *Bui) F(vals ...interface{}) {
 	for _, val := range vals {
 		self.Child(val)
 	}
@@ -100,58 +106,35 @@ special rules.
 func (self *Bui) Child(val interface{}) {
 	switch val := val.(type) {
 	case nil:
+	case []interface{}:
+		self.F(val...)
+	case string:
+		self.EscString(val)
+	case []byte:
+		self.EscBytes(val)
 	case func():
 		if val != nil {
 			val()
-		}
-	case func(E):
-		if val != nil {
-			val(self.E)
 		}
 	case func(*Bui):
 		if val != nil {
 			val(self)
 		}
-	case []interface{}:
-		self.Children(val...)
-	case String:
-		self.NonEscString(string(val))
-	case Bytes:
-		self.NonEscBytes(val)
-	case string:
-		self.EscString(val)
-	case []byte:
-		self.EscBytes(val)
-	case bool:
-		self.bool(val)
-	case uint:
-		self.uint(val)
-	case uint8:
-		self.uint8(val)
-	case uint16:
-		self.uint16(val)
-	case uint32:
-		self.uint32(val)
-	case uint64:
-		self.uint64(val)
-	case int:
-		self.int(val)
-	case int8:
-		self.int8(val)
-	case int16:
-		self.int16(val)
-	case int32:
-		self.int32(val)
-	case int64:
-		self.int64(val)
-	case float32:
-		self.float32(val)
-	case float64:
-		self.float64(val)
+	case func() interface{}:
+		if val != nil {
+			self.Child(val())
+		}
+	case Ren:
+		if val != nil {
+			val.Render(self)
+		}
 	default:
 		self.Unknown(val)
 	}
 }
+
+// Shorter alias for `Bui.Child`.
+func (self *Bui) C(val interface{}) { self.Child(val) }
 
 /*
 Mostly for internal use. Writes regular text without escaping. For writing
@@ -185,49 +168,37 @@ func (self *Bui) EscString(val string) {
 	_, _ = (*TextWri)(self).WriteString(val)
 }
 
+// Shorter alias for `Bui.EscString`.
+func (self *Bui) T(val string) { self.EscString(val) }
+
 /*
 Mostly for internal use. If the provided value is not nil, it's printed via
 `fmt.Fprint` and escaped via `TextWri`. Bypasses other special rules for child
-encoding. Use `Bui.Child` instead.
+encoding. Use `Bui.F` instead.
 */
 func (self *Bui) Unknown(val interface{}) {
-	if isNil(val) {
+	if val == nil {
 		return
 	}
+
+	rval := reflect.ValueOf(val)
+	if isRvalNil(rval) {
+		return
+	}
+
+	switch rval.Kind() {
+	case reflect.Invalid, reflect.Func:
+		panic(fmt.Errorf(`can't render %T`, val))
+	}
+
 	fmt.Fprint((*TextWri)(self), val)
 }
 
-/*
-Shortcut for calling a function with `Bui.E` and returning the same `Bui`
-instance.
-*/
-func (self Bui) With(fun func(E)) Bui {
-	fun(self.E)
-	return self
-}
+// Implement `Ren`. Appends itself without HTML/XML escaping.
+func (self Bui) Render(bui *Bui) { bui.NonEscBytes(self.Bytes()) }
 
 // Free cast to `[]byte`.
 func (self Bui) Bytes() []byte { return self }
 
 // Free cast to `string`.
 func (self Bui) String() string { return bytesToMutableString(self) }
-
-func (self *Bui) bool(val bool)     { *self = Bui(strconv.AppendBool(*(*[]byte)(self), val)) }
-func (self *Bui) uint(val uint)     { self.uint64(uint64(val)) }
-func (self *Bui) uint8(val uint8)   { self.uint64(uint64(val)) }
-func (self *Bui) uint16(val uint16) { self.uint64(uint64(val)) }
-func (self *Bui) uint32(val uint32) { self.uint64(uint64(val)) }
-func (self *Bui) uint64(val uint64) { *self = Bui(strconv.AppendUint(*(*[]byte)(self), val, 10)) }
-func (self *Bui) int(val int)       { self.int64(int64(val)) }
-func (self *Bui) int8(val int8)     { self.int64(int64(val)) }
-func (self *Bui) int16(val int16)   { self.int64(int64(val)) }
-func (self *Bui) int32(val int32)   { self.int64(int64(val)) }
-func (self *Bui) int64(val int64)   { *self = Bui(strconv.AppendInt(*(*[]byte)(self), val, 10)) }
-
-func (self *Bui) float32(val float32) {
-	*self = Bui(strconv.AppendFloat(*(*[]byte)(self), float64(val), floatVerb, -1, 32))
-}
-
-func (self *Bui) float64(val float64) {
-	*self = Bui(strconv.AppendFloat(*(*[]byte)(self), val, floatVerb, -1, 64))
-}

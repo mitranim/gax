@@ -10,11 +10,9 @@ import (
 )
 
 func Test_static_gax(_ *testing.T) {
-	bui := Bui(Doctype)
-	renderStatic(bui.E)
-	eq(
+	eqs(
 		`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>`,
-		bui.String(),
+		renderedStatic,
 	)
 }
 
@@ -26,17 +24,16 @@ func Test_static_template(_ *testing.T) {
 }
 
 func Test_static_equiv(_ *testing.T) {
-	bui := Bui(Doctype)
-	renderStatic(bui.E)
-	eq(bui.String(), templateToString(tplStatic, nil))
+	eqs(
+		templateToString(tplStatic, nil),
+		renderedStatic,
+	)
 }
 
 func Test_dynamic_gax(_ *testing.T) {
-	bui := Bui(Doctype)
-	renderDynamic(bui.E, mockDat)
-	eq(
+	eqs(
 		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
-		bui.String(),
+		renderDynamic(mockDat),
 	)
 }
 
@@ -48,15 +45,15 @@ func Test_dynamic_template(_ *testing.T) {
 }
 
 func Test_dynamic_equiv(_ *testing.T) {
-	bui := Bui(Doctype)
-	renderDynamic(bui.E, mockDat)
-	eq(bui.String(), templateToString(tplDynamic, mockDat))
+	eqs(
+		templateToString(tplDynamic, mockDat),
+		renderDynamic(mockDat),
+	)
 }
 
 func Benchmark_static_gax(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		bui := Bui(Doctype)
-		renderStatic(bui.E)
+		_, _ = new(bytes.Buffer).Write(renderedStatic)
 	}
 }
 
@@ -68,8 +65,7 @@ func Benchmark_static_template(b *testing.B) {
 
 func Benchmark_dynamic_gax(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		bui := Bui(Doctype)
-		renderDynamic(bui.E, mockDat)
+		_ = renderDynamic(mockDat)
 	}
 }
 
@@ -137,26 +133,22 @@ var mockDat = MockDat{
 	},
 }
 
-/*
-Using a bound method, rather than the builder itself, incurs a significant
-slowdown. We're using this in benchmarks because we kinda recommend this for
-syntactic usability.
-*/
-func renderStatic(E E) {
-	E(`html`, A{{`lang`, `en`}}, func() {
-		E(`head`, nil, func() {
-			E(`meta`, A{{`charset`, `utf-8`}})
-			E(`meta`, A{{`http-equiv`, `X-UA-Compatible`}, {`content`, `IE=edge`}})
-			E(`meta`, A{{`name`, `viewport`}, {`content`, `width=device-width, initial-scale=1`}})
-			E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
-			E(`title`, nil, `test markup`)
-		})
-		E(`body`, A{{`class`, `stretch-to-viewport`}}, func() {
-			E(`h1`, A{{`class`, `title`}}, `mock markup`)
-			E(`div`, A{{`class`, `main`}}, `hello world!`)
-		})
-	})
-}
+var renderedStatic = F(
+	Str(Doctype),
+	E(`html`, AP(`lang`, `en`),
+		E(`head`, nil,
+			E(`meta`, AP(`charset`, `utf-8`)),
+			E(`meta`, AP(`http-equiv`, `X-UA-Compatible`, `content`, `IE=edge`)),
+			E(`meta`, AP(`name`, `viewport`, `content`, `width=device-width, initial-scale=1`)),
+			E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`)),
+			E(`title`, nil, `test markup`),
+		),
+		E(`body`, AP(`class`, `stretch-to-viewport`),
+			E(`h1`, AP(`class`, `title`), `mock markup`),
+			E(`div`, AP(`class`, `main`), `hello world!`),
+		),
+	),
+)
 
 var tplStatic = templateMake(nil, `
 <!doctype html>
@@ -175,67 +167,72 @@ var tplStatic = templateMake(nil, `
 </html>
 `)
 
-func renderDynamic(E E, dat MockDat) {
+func renderDynamic(dat MockDat) Bui {
 	var scheme Attr
 	if dat.ColorScheme != "" {
 		scheme = Attr{`class`, dat.ColorScheme}
 	}
 
-	E(`html`, A{{`lang`, `en`}, scheme}, func() {
-		E(`head`, nil, func() {
-			E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
+	return F(
+		Str(Doctype),
+		E(`html`, AP(`lang`, `en`).A(scheme),
+			E(`head`, nil, func(b *Bui) {
+				b.E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`))
 
-			if dat.Title != "" {
-				E(`title`, nil, dat.Title)
-				E(`meta`, A{{`property`, `og:title`}, {`content`, dat.Title}})
-			} else {
-				E(`title`, nil, `mock site`)
-			}
-
-			if dat.Desc != "" {
-				E(`meta`, A{{`name`, `description`}, {`content`, dat.Desc}})
-			}
-
-			if dat.Image != "" {
-				E(`meta`, A{{`property`, `og:image`}, {`content`, `/images/` + dat.Image}})
-			}
-
-			if dat.Type != "" {
-				E(`meta`, A{{`property`, `og:type`}, {`content`, dat.Type}})
-				E(`meta`, A{{`property`, `og:site_name`}, {`content`, `mock site`}})
-			}
-		})
-
-		E(`body`, nil, func() {
-			E(`nav`, nil, func() {
-				E(`a`, A{{`href`, "/"}, cur(dat, "index.html")}, `home`)
-				E(`a`, A{{`href`, "/works"}, cur(dat, "works.html")}, `works`)
-				E(`a`, A{{`href`, "/posts"}, cur(dat, "posts.html")}, `posts`)
-				E(`a`, A{{`href`, "/demos"}, cur(dat, "demos.html")}, `demos`)
-				E(`span`, nil, `Updated `+inst)
-			})
-
-			E(`div`, A{{`role`, `main`}}, func() {
-				E(`h1`, nil, `Posts`)
-
-				if len(dat.Posts) > 0 {
-					for _, post := range dat.Posts {
-						if !post.IsListed {
-							continue
-						}
-						E(`h2`, nil, func() {
-							E(`a`, A{{`href`, post.Path}}, post.Title)
-						})
-						if post.Desc != "" {
-							E(`p`, nil, post.Desc)
-						}
-					}
+				if dat.Title != "" {
+					b.E(`title`, nil, dat.Title)
+					b.E(`meta`, AP(`property`, `og:title`, `content`, dat.Title))
 				} else {
-					E(`p`, nil, `Oops! It appears there are no public posts yet.`)
+					b.E(`title`, nil, `mock site`)
 				}
-			})
-		})
-	})
+
+				if dat.Desc != "" {
+					b.E(`meta`, AP(`name`, `description`, `content`, dat.Desc))
+				}
+
+				if dat.Image != "" {
+					b.E(`meta`, AP(`property`, `og:image`, `content`, `/images/`+dat.Image))
+				}
+
+				if dat.Type != "" {
+					b.E(`meta`, AP(`property`, `og:type`, `content`, dat.Type))
+					b.E(`meta`, AP(`property`, `og:site_name`, `content`, `mock site`))
+				}
+			}),
+
+			E(`body`, nil,
+				E(`nav`, nil,
+					E(`a`, AP(`href`, `/`).A(cur(dat, `index.html`)), `home`),
+					E(`a`, AP(`href`, `/works`).A(cur(dat, `works.html`)), `works`),
+					E(`a`, AP(`href`, `/posts`).A(cur(dat, `posts.html`)), `posts`),
+					E(`a`, AP(`href`, `/demos`).A(cur(dat, `demos.html`)), `demos`),
+					E(`span`, nil, `Updated `+inst),
+				),
+
+				E(`div`, AP(`role`, `main`),
+					E(`h1`, nil, `Posts`),
+
+					func(b *Bui) {
+						if len(dat.Posts) > 0 {
+							for _, post := range dat.Posts {
+								if !post.IsListed {
+									continue
+								}
+								b.E(`h2`, nil, func() {
+									b.E(`a`, AP(`href`, post.Path), post.Title)
+								})
+								if post.Desc != "" {
+									b.E(`p`, nil, post.Desc)
+								}
+							}
+						} else {
+							b.E(`p`, nil, `Oops! It appears there are no public posts yet.`)
+						}
+					},
+				),
+			),
+		),
+	)
 }
 
 var tplDynamic = templateMake(

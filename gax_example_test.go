@@ -3,11 +3,14 @@ package gax_test
 import (
 	"fmt"
 
-	"github.com/mitranim/gax"
+	x "github.com/mitranim/gax"
 )
 
 func ExampleBui() {
-	type A = gax.A
+	var (
+		E  = x.E
+		AP = x.AP
+	)
 
 	type Dat struct {
 		Title string
@@ -19,101 +22,143 @@ func ExampleBui() {
 		Posts: []string{`Post0`, `Post1`},
 	}
 
-	bui := gax.Bui(gax.Doctype)
-	E := bui.E
+	bui := x.F(
+		x.Str(x.Doctype),
+		E(`html`, AP(`lang`, `en`),
+			E(`head`, nil,
+				E(`meta`, AP(`charset`, `utf-8`)),
+				E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`)),
 
-	E(`html`, A{{`lang`, `en`}}, func() {
-		E(`head`, nil, func() {
-			E(`meta`, A{{`charset`, `utf-8`}})
-			E(`link`, A{{`rel`, `icon`}, {`href`, `data:;base64,=`}})
+				// Use normal Go conditionals.
+				func(b *x.Bui) {
+					if dat.Title != "" {
+						b.E(`title`, nil, dat.Title)
+					} else {
+						b.E(`title`, nil, `test markup`)
+					}
+				},
+			),
 
-			// Use normal Go conditionals.
-			if dat.Title != "" {
-				E(`title`, nil, dat.Title)
-			} else {
-				E(`title`, nil, `test markup`)
-			}
-		})
+			E(`body`, nil,
+				E(`h1`, AP(`class`, `title`), `Posts`),
 
-		E(`body`, nil, func() {
-			E(`h1`, A{{`class`, `title`}}, `Posts`)
-
-			// Use normal Go loops.
-			for _, post := range dat.Posts {
-				E(`h2`, nil, post)
-			}
-		})
-	})
+				// Use normal Go loops.
+				func(b *x.Bui) {
+					for _, post := range dat.Posts {
+						b.E(`h2`, nil, post)
+					}
+				},
+			),
+		),
+	)
 
 	fmt.Println(bui)
 	// Output:
 	// <!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:;base64,="><title>Posts</title></head><body><h1 class="title">Posts</h1><h2>Post0</h2><h2>Post1</h2></body></html>
 }
 
-func ExampleBui_With() {
-	type A = gax.A
-	type E = gax.E
+func ExampleE() {
+	var (
+		E  = x.E
+		AP = x.AP
+	)
 
-	fmt.Println(gax.Bui(gax.Doctype).With(func(E E) {
-		E(`html`, A{{`lang`, `en`}})
-	}))
-	// Output:
-	// <!doctype html><html lang="en"></html>
-}
-
-func ExampleEbui() {
-	type A = gax.A
-	type E = gax.E
-
-	fmt.Println(gax.Ebui(func(E E) {
-		E(`span`, A{{`aria-hidden`, `true`}}, `🔥`)
-	}))
+	fmt.Println(
+		E(`span`, AP(`aria-hidden`, `true`), `🔥`),
+	)
 	// Output:
 	// <span aria-hidden="true">🔥</span>
 }
 
+func ExampleF() {
+	var doc = x.F(
+		x.Str(x.Doctype),
+		x.E(`html`, nil),
+	)
+
+	fmt.Println(doc)
+	// Output:
+	// <!doctype html><html></html>
+}
+
 func ExampleDoctype() {
-	bui := gax.Bui(gax.Doctype)
+	bui := x.Bui(x.Doctype)
 	bui.E(`html`, nil)
+
 	fmt.Println(bui)
 	// Output:
 	// <!doctype html><html></html>
 }
 
+func ExampleAP() {
+	fmt.Println(
+		x.AP(
+			`href`, `/`,
+			`aria-current`, `page`,
+			`class`, `some-class`,
+		),
+	)
+	// Output:
+	// href="/" aria-current="page" class="some-class"
+}
+
 func ExampleA() {
-	attrs := gax.A{
-		{"class", "some-class"},
-		{"style", "some: style"},
+	attrs := x.A(
+		x.Attr{`class`, `some-class`},
+		x.Attr{`style`, `some: style`},
+	)
+	fmt.Println(attrs)
+	// Output:
+	// class="some-class" style="some: style"
+}
+
+func ExampleAttrs() {
+	attrs := x.Attrs{
+		{`class`, `some-class`},
+		{`style`, `some: style`},
 	}
 	fmt.Println(attrs)
 	// Output:
 	// class="some-class" style="some: style"
 }
 
+func ExampleAttrs_A() {
+	cur := func() x.Attr { return x.Attr{`aria-current`, `page`} }
+	bg := func() x.Attr { return x.Attr{`style`, `background-image: url(...)`} }
+
+	fmt.Println(
+		x.AP(`class`, `some-class`).A(cur(), bg()),
+	)
+	// class="some-class" aria-current="page" style="background-image: url(...)"
+}
+
+func ExampleAttrs_AP() {
+	fmt.Println(
+		x.AP(`class`, `some-class`).AP(`href`, `/`),
+	)
+	// class="some-class" href="/"
+}
+
 func ExampleAttr() {
-	fmt.Println(gax.Attr{"class", "some-class"})
+	fmt.Println(x.Attr{`class`, `some-class`})
 	// Output:
 	// class="some-class"
 }
 
-func ExampleE() {
-	_ = func(E gax.E) {
-		E("div", nil, "...")
-	}
-}
+func ExampleStr_Render() {
+	var bui x.Bui
+	bui.E(`div`, nil, x.Str(`<script>alert('hacked!')</script>`))
 
-func ExampleString() {
-	var b gax.Bui
-	b.E(`div`, nil, gax.String(`<script>alert('hacked!')</script>`))
-	fmt.Println(b)
+	fmt.Println(bui)
 	// Output:
 	// <div><script>alert('hacked!')</script></div>
 }
 
-func ExampleBytes() {
-	var b gax.Bui
-	b.E(`div`, nil, gax.Bytes(`<script>alert('hacked!')</script>`))
-	fmt.Println(b)
+func ExampleBui_Render() {
+	var bui x.Bui
+	bui.E(`div`, nil, x.Bui(`<script>alert('hacked!')</script>`))
+
+	fmt.Println(bui)
 	// Output:
 	// <div><script>alert('hacked!')</script></div>
 }

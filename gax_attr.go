@@ -1,13 +1,57 @@
 package gax
 
+import "fmt"
+
+/*
+Short for "attributes". Same as the `Attrs{}` constructor, but uses parentheses,
+which is sometimes more convenient. Symmetric with `Attrs.A`.
+*/
+func A(vals ...Attr) Attrs { return Attrs(vals) }
+
+/*
+Short for "attributes from pairs". Recommended way to write attributes, due to
+its brevity. Symmetric with `Attrs.AP`.
+*/
+func AP(pairs ...string) Attrs {
+	return make(Attrs, 0, len(pairs)/2).AP(pairs...)
+}
+
 /*
 Short for "attributes". List of arbitrary HTML/XML attributes. Usually passed to
 `Bui.E`.
 */
-type A []Attr
+type Attrs []Attr
+
+/*
+Shortcut for appending more attributes. Useful when combining attributes from
+hardcoded pairs (via `AP`) with attributes created as `Attr`. For example, you
+can write a function that generates a specific attribute, and use this to
+append the result.
+*/
+func (self Attrs) A(vals ...Attr) Attrs { return append(self, vals...) }
+
+/*
+Shortcut for appending more attributes from pairs, as if by calling `AP`.
+Panics if the argument count is not even.
+*/
+func (self Attrs) AP(pairs ...string) Attrs {
+	if len(pairs)%2 != 0 {
+		panic(fmt.Errorf(`AP expects an even amount of args, got %#v`, pairs))
+	}
+
+	i := 0
+	for i < len(pairs) {
+		key := pairs[i]
+		i++
+		val := pairs[i]
+		i++
+		self = append(self, Attr{key, val})
+	}
+	return self
+}
 
 // Mostly for internal use.
-func (self A) Append(buf []byte) []byte {
+func (self Attrs) Append(buf []byte) []byte {
 	for _, val := range self {
 		buf = val.Append(buf)
 	}
@@ -15,13 +59,47 @@ func (self A) Append(buf []byte) []byte {
 }
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
-func (self A) String() string {
+func (self Attrs) String() string {
 	return NonEscWri(self.Append(nil)).String()
 }
 
 /*
-Represents an arbitrary HTML/XML attribute. Usually part of `A{}`. An empty/zero
-attr (equal to `Attr{}`) is ignored during encoding.
+Implement `fmt.GoStringer` for debug purposes. Not used by builder methods.
+Represents itself as a call to `AP`, which is the recommended way to write
+this.
+*/
+func (self Attrs) GoString() string {
+	if self == nil {
+		return `nil`
+	}
+
+	var buf NonEscWri
+	_, _ = buf.WriteString(`AP(`)
+
+	found := false
+	for _, val := range self {
+		if val == (Attr{}) {
+			continue
+		}
+
+		if !found {
+			found = true
+		} else {
+			_, _ = buf.WriteString(`, `)
+		}
+
+		buf = NonEscWri(appendQuote(buf, val.Name()))
+		_, _ = buf.WriteString(`, `)
+		buf = NonEscWri(appendQuote(buf, val.Value()))
+	}
+
+	_, _ = buf.WriteString(`)`)
+	return buf.String()
+}
+
+/*
+Represents an arbitrary HTML/XML attribute. Usually part of `Attrs{}`. An
+empty/zero attr (equal to `Attr{}`) is ignored during encoding.
 */
 type Attr [2]string
 

@@ -3,12 +3,10 @@ package gax
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"unsafe"
 )
-
-// Match the `fmt` default for consistency.
-const floatVerb = 'g'
 
 func newStringSet(vals ...string) stringSet {
 	set := make(stringSet, len(vals))
@@ -20,14 +18,9 @@ func newStringSet(vals ...string) stringSet {
 
 type stringSet map[string]struct{}
 
-func (self stringSet) Has(val string) bool {
-	_, ok := self[val]
-	return ok
-}
-
-func (self stringSet) Add(val string) { self[val] = struct{}{} }
-
-func (self stringSet) Del(val string) { delete(self, val) }
+func (self stringSet) Has(val string) bool { _, ok := self[val]; return ok }
+func (self stringSet) Add(val string)      { self[val] = struct{}{} }
+func (self stringSet) Del(val string)      { delete(self, val) }
 
 /*
 Extremely permissive. Should prevent weird gotchas without interfering with
@@ -85,4 +78,14 @@ the standard library. Reasonably safe.
 */
 func bytesToMutableString(bytes []byte) string {
 	return *(*string)(unsafe.Pointer(&bytes))
+}
+
+func appendQuote(buf []byte, val string) []byte {
+	if strconv.CanBackquote(val) {
+		buf = append(buf, "`"...)
+		buf = append(buf, val...)
+		buf = append(buf, "`"...)
+		return buf
+	}
+	return strconv.AppendQuote(buf, val)
 }
