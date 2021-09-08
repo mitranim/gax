@@ -89,3 +89,14 @@ func appendQuote(buf []byte, val string) []byte {
 	}
 	return strconv.AppendQuote(buf, val)
 }
+
+func grow(prev []byte, size int) []byte {
+	len, cap := len(prev), cap(prev)
+	if cap-len >= size {
+		return prev
+	}
+
+	next := make([]byte, len, 2*cap+size)
+	copy(next, prev)
+	return next
+}

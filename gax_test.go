@@ -279,6 +279,41 @@ func TestVac(t *testing.T) {
 	eq([]interface{}{0}, Vac([]interface{}{0}))
 }
 
+func TestNonEscWri_grow(t *testing.T) {
+	var wri NonEscWri
+
+	eq(0, len(wri))
+	eq(0, cap(wri))
+
+	wri.grow(1)
+	eq(0, len(wri))
+	eq(1, cap(wri))
+
+	wri.grow(11)
+	eq(0, len(wri))
+	eq(13, cap(wri))
+
+	wri.grow(7)
+	eq(0, len(wri))
+	eq(13, cap(wri))
+
+	wri = wri[:1][1:]
+	eq(0, len(wri))
+	eq(12, cap(wri))
+
+	wri.grow(7)
+	eq(0, len(wri))
+	eq(12, cap(wri))
+
+	wri.grow(11)
+	eq(0, len(wri))
+	eq(12, cap(wri))
+
+	wri.grow(13)
+	eq(0, len(wri))
+	eq(37, cap(wri))
+}
+
 func eqs(exp string, act []byte) {
 	eq(exp, string(act))
 }

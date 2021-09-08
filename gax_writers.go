@@ -1,6 +1,8 @@
 package gax
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+)
 
 /*
 Mostly for internal use. Similar to `bytes.Buffer` or `strings.Builder`, but
@@ -27,24 +29,18 @@ func (self *NonEscWri) WriteRune(val rune) (int, error) {
 		return 1, nil
 	}
 
-	lenPrev := len(*self)
-	if cap(*self)-lenPrev < utf8.UTFMax {
-		self.grow(utf8.UTFMax)
-	}
+	self.grow(utf8.UTFMax)
 
-	wid := utf8.EncodeRune((*self)[lenPrev:lenPrev+utf8.UTFMax], val)
-	*self = (*self)[:lenPrev+wid]
+	len := len(*self)
+	wid := utf8.EncodeRune((*self)[len:len+utf8.UTFMax], val)
+	*self = (*self)[:len+wid]
 	return wid, nil
 }
 
 // Similar to `strings.Builder.String`. Free cast with no allocation.
 func (self NonEscWri) String() string { return bytesToMutableString(self) }
 
-func (self *NonEscWri) grow(size int) {
-	buf := make([]byte, len(*self), 2*cap(*self)+size)
-	copy(buf, *self)
-	*self = buf
-}
+func (self *NonEscWri) grow(size int) { *self = grow(*self, size) }
 
 /*
 Mostly for internal use. Writes text as if it were inside an HTML/XML attribute,
