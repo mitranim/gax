@@ -10,7 +10,7 @@ Short for "fragment" or "document fragment". Shortcut for making `Bui` with
 these children.
 */
 func F(vals ...interface{}) (bui Bui) {
-	bui.F(vals)
+	bui.F(vals...)
 	return
 }
 
@@ -188,7 +188,7 @@ func (self *Bui) Unknown(val interface{}) {
 
 	switch rval.Kind() {
 	case reflect.Invalid, reflect.Func:
-		panic(fmt.Errorf(`can't render %T`, val))
+		panic(fmt.Errorf(`[gax] can't render %T`, val))
 	}
 
 	fmt.Fprint((*TextWri)(self), val)

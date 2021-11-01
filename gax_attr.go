@@ -36,7 +36,7 @@ Panics if the argument count is not even.
 */
 func (self Attrs) AP(pairs ...string) Attrs {
 	if len(pairs)%2 != 0 {
-		panic(fmt.Errorf(`AP expects an even amount of args, got %#v`, pairs))
+		panic(fmt.Errorf(`[gax] AP expects an even amount of args, got %#v`, pairs))
 	}
 
 	i := 0

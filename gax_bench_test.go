@@ -1,8 +1,8 @@
 package gax
 
 import (
-	"bytes"
 	"html/template"
+	"io"
 	"regexp"
 	"strings"
 	"testing"
@@ -51,27 +51,27 @@ func Test_dynamic_equiv(_ *testing.T) {
 	)
 }
 
-func Benchmark_static_gax(b *testing.B) {
+func Benchmark_template_static(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _ = new(bytes.Buffer).Write(renderedStatic)
+		must(tplStatic.Execute(io.Discard, nil))
 	}
 }
 
-func Benchmark_static_template(b *testing.B) {
+func Benchmark_gax_static(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		must(tplStatic.Execute(new(bytes.Buffer), nil))
+		_, _ = io.Discard.Write(renderedStatic)
 	}
 }
 
-func Benchmark_dynamic_gax(b *testing.B) {
+func Benchmark_template_dynamic(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		must(tplDynamic.Execute(io.Discard, mockDat))
+	}
+}
+
+func Benchmark_gax_dynamic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = renderDynamic(mockDat)
-	}
-}
-
-func Benchmark_dynamic_template(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		must(tplDynamic.Execute(new(bytes.Buffer), mockDat))
 	}
 }
 

@@ -92,7 +92,7 @@ type Dat struct {
 
 Gax easily beats `text/template` and `html/template`. The more dynamic a template is, the better it gets.
 
-In the static benchmark, Gax renders the markup just once into a global variable, benchmarking the writing performance of `bytes.Buffer` for "fairness" with templating. This is recommended for all completely static markup.
+The static benchmark is "unfair" because it renders just once into a global variable. This is recommended for all completely static markup. Prerendering is also possible with `text/template` and `html/template`, but syntactically inconvenient and usually avoided. With Gax it's syntactically convenient and easily done, and the benchmark reflects that.
 
 The dynamic benchmark is intentionally naive, avoiding some Gax optimizations such as static prerender, to mimic simple user code.
 
@@ -102,10 +102,10 @@ go test -bench . -benchmem
 
 ```
 cpu: Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz
-Benchmark_static_gax-12           12817749       88.78 ns/op       384 B/op        1 allocs/op
-Benchmark_static_template-12       6270380       193.4 ns/op       480 B/op        3 allocs/op
-Benchmark_dynamic_gax-12             68360       16726 ns/op      9320 B/op      140 allocs/op
-Benchmark_dynamic_template-12         9432      130345 ns/op     61847 B/op     1376 allocs/op
+Benchmark_template_static-12   17002192    67.31 ns/op     48 B/op     1 allocs/op
+Benchmark_gax_static-12        640101200   1.845 ns/op      0 B/op     0 allocs/op
+Benchmark_template_dynamic-12      9205   130812 ns/op  51811 B/op  1370 allocs/op
+Benchmark_gax_dynamic-12          70465    17090 ns/op  10376 B/op   169 allocs/op
 ```
 
 ## Changelog

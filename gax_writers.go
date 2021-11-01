@@ -5,8 +5,9 @@ import (
 )
 
 /*
-Mostly for internal use. Similar to `bytes.Buffer` or `strings.Builder`, but
-simpler and more flexible, being just a byte slice.
+Short for "non-escaping writer". Mostly for internal use. Similar to
+`bytes.Buffer` or `strings.Builder`, but simpler and more flexible, being just
+a byte slice.
 */
 type NonEscWri []byte
 
@@ -43,8 +44,9 @@ func (self NonEscWri) String() string { return bytesToMutableString(self) }
 func (self *NonEscWri) grow(size int) { *self = grow(*self, size) }
 
 /*
-Mostly for internal use. Writes text as if it were inside an HTML/XML attribute,
-without enclosing quotes, escaping as necessary. For escaping rules, see:
+Short for "attribute writer". Mostly for internal use. Writes text as if it were
+inside an HTML/XML attribute, without enclosing quotes, escaping as necessary.
+For escaping rules, see:
 
 	https://www.w3.org/TR/html52/syntax.html#escaping-a-string
 */
@@ -88,8 +90,8 @@ func (self *AttrWri) WriteRune(val rune) (int, error) {
 func (self AttrWri) String() string { return bytesToMutableString(self) }
 
 /*
-Mostly for internal use. Writes text as if it were inside an HTML/XML element,
-escaping as necessary. For escaping rules, see:
+Short for "text writer". Mostly for internal use. Writes text as if it were
+inside an HTML/XML element, escaping as necessary. For escaping rules, see:
 
 	https://www.w3.org/TR/html52/syntax.html#escaping-a-string
 */
