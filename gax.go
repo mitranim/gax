@@ -50,11 +50,11 @@ list? Taken from non-authoritative sources. Reference:
 	https://www.w3.org/TR/html52/infrastructure.html#boolean-attribute
 */
 var Bool = newStringSet(
-	"allowfullscreen", "allowpaymentrequest", "async", "autofocus", "autoplay",
-	"checked", "controls", "default", "disabled", "formnovalidate", "hidden",
-	"ismap", "itemscope", "loop", "multiple", "muted", "nomodule", "novalidate",
-	"open", "playsinline", "readonly", "required", "reversed", "selected",
-	"truespeed",
+	`allowfullscreen`, `allowpaymentrequest`, `async`, `autofocus`, `autoplay`,
+	`checked`, `controls`, `default`, `disabled`, `formnovalidate`, `hidden`,
+	`ismap`, `itemscope`, `loop`, `multiple`, `muted`, `nomodule`, `novalidate`,
+	`open`, `playsinline`, `readonly`, `required`, `reversed`, `selected`,
+	`truespeed`,
 )
 
 /*
@@ -65,15 +65,15 @@ modified via `Void.Add` and `Void.Del`. Reference:
 	https://www.w3.org/TR/html52/syntax.html#writing-html-documents-elements
 */
 var Void = newStringSet(
-	"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
-	"param", "source", "track", "wbr",
+	`area`, `base`, `br`, `col`, `embed`, `hr`, `img`, `input`, `link`, `meta`,
+	`param`, `source`, `track`, `wbr`,
 )
 
 /*
 Short for "vacate", "vacuum", "vacuous". Takes a "child" intended for `E` or
 `F`. If the child is empty, returns `nil`, otherwise returns the child as-is.
 Empty is defined as containing only nils. Just like `E` and `F`, this
-recursively traverses `[]interface{}`.
+recursively walks `[]interface{}`.
 */
 func Vac(val interface{}) interface{} {
 	inout := val

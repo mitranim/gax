@@ -2,11 +2,13 @@ package gax
 
 import (
 	"fmt"
-	"reflect"
+	r "reflect"
 	"strconv"
 	"strings"
 	"unsafe"
 )
+
+var typeRen = r.TypeOf((*Ren)(nil)).Elem()
 
 func newStringSet(vals ...string) stringSet {
 	set := make(stringSet, len(vals))
@@ -56,16 +58,16 @@ func invalidTagOrAttr(val string) bool {
 }
 
 func isNil(val interface{}) bool {
-	return val == nil || isRvalNil(reflect.ValueOf(val))
+	return val == nil || isRvalNil(r.ValueOf(val))
 }
 
-func isRvalNil(rval reflect.Value) bool {
+func isRvalNil(rval r.Value) bool {
 	return !rval.IsValid() || isRkindNilable(rval.Kind()) && rval.IsNil()
 }
 
-func isRkindNilable(kind reflect.Kind) bool {
+func isRkindNilable(kind r.Kind) bool {
 	switch kind {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+	case r.Chan, r.Func, r.Interface, r.Map, r.Ptr, r.Slice:
 		return true
 	default:
 		return false
@@ -76,7 +78,7 @@ func isRkindNilable(kind reflect.Kind) bool {
 Allocation-free conversion. Reinterprets a byte slice as a string. Borrowed from
 the standard library. Reasonably safe.
 */
-func bytesToMutableString(bytes []byte) string {
+func bytesString(bytes []byte) string {
 	return *(*string)(unsafe.Pointer(&bytes))
 }
 
@@ -100,3 +102,5 @@ func grow(prev []byte, size int) []byte {
 	copy(next, prev)
 	return next
 }
+
+func iter(count int) []struct{} { return make([]struct{}, count) }

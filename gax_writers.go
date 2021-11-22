@@ -1,8 +1,6 @@
 package gax
 
-import (
-	"unicode/utf8"
-)
+import "unicode/utf8"
 
 /*
 Short for "non-escaping writer". Mostly for internal use. Similar to
@@ -11,13 +9,13 @@ a byte slice.
 */
 type NonEscWri []byte
 
-// Similar to `strings.Builder.Write`.
+// Implement `io.Writer`. Similar to `strings.Builder.Write`.
 func (self *NonEscWri) Write(val []byte) (int, error) {
 	*self = append(*self, val...)
 	return len(val), nil
 }
 
-// Similar to `strings.Builder.WriteString`.
+// Implement `io.StringWriter`. Similar to `strings.Builder.WriteString`.
 func (self *NonEscWri) WriteString(val string) (int, error) {
 	*self = append(*self, val...)
 	return len(val), nil
@@ -39,8 +37,9 @@ func (self *NonEscWri) WriteRune(val rune) (int, error) {
 }
 
 // Similar to `strings.Builder.String`. Free cast with no allocation.
-func (self NonEscWri) String() string { return bytesToMutableString(self) }
+func (self NonEscWri) String() string { return bytesString(self) }
 
+// TODO make public.
 func (self *NonEscWri) grow(size int) { *self = grow(*self, size) }
 
 /*
@@ -53,15 +52,16 @@ For escaping rules, see:
 type AttrWri []byte
 
 /*
-Similar to `strings.Builder.Write`, but escapes special chars. Technically not
-compliant with `io.Writer`: the returned count of written bytes may exceed the
-size of the provided chunk.
+Implement `io.Writer`. Similar to `strings.Builder.Write`, but escapes special
+chars. Technically not compliant with `io.Writer`: the returned count of
+written bytes may exceed the size of the provided chunk.
 */
 func (self *AttrWri) Write(val []byte) (int, error) {
-	return self.WriteString(bytesToMutableString(val))
+	return self.WriteString(bytesString(val))
 }
 
-// Similar to `strings.Builder.WriteString`, but escapes special chars.
+// Implement `io.StringWriter`. Similar to `strings.Builder.WriteString`, but
+// escapes special chars.
 func (self *AttrWri) WriteString(val string) (size int, _ error) {
 	for _, char := range val {
 		delta, _ := self.WriteRune(char)
@@ -87,7 +87,7 @@ func (self *AttrWri) WriteRune(val rune) (int, error) {
 }
 
 // Similar to `strings.Builder.String`. Free cast with no allocation.
-func (self AttrWri) String() string { return bytesToMutableString(self) }
+func (self AttrWri) String() string { return bytesString(self) }
 
 /*
 Short for "text writer". Mostly for internal use. Writes text as if it were
@@ -98,15 +98,16 @@ inside an HTML/XML element, escaping as necessary. For escaping rules, see:
 type TextWri []byte
 
 /*
-Similar to `strings.Builder.Write`, but escapes special chars. Technically not
-compliant with `io.Writer`: the returned count of written bytes may exceed the
-size of the provided chunk.
+Implement `io.Writer`. Similar to `strings.Builder.Write`, but escapes special
+chars. Technically not compliant with `io.Writer`: the returned count of
+written bytes may exceed the size of the provided chunk.
 */
 func (self *TextWri) Write(val []byte) (int, error) {
-	return self.WriteString(bytesToMutableString(val))
+	return self.WriteString(bytesString(val))
 }
 
-// Similar to `strings.Builder.WriteString`, but escapes special chars.
+// Implement `io.StringWriter`. Similar to `strings.Builder.WriteString`, but
+// escapes special chars.
 func (self *TextWri) WriteString(val string) (size int, _ error) {
 	for _, char := range val {
 		delta, _ := self.WriteRune(char)
@@ -134,4 +135,4 @@ func (self *TextWri) WriteRune(val rune) (int, error) {
 }
 
 // Similar to `strings.Builder.String`. Free cast with no allocation.
-func (self TextWri) String() string { return bytesToMutableString(self) }
+func (self TextWri) String() string { return bytesString(self) }

@@ -110,6 +110,10 @@ Benchmark_gax_dynamic-12          70465    17090 ns/op  10376 B/op   169 allocs/
 
 ## Changelog
 
+### `v0.2.1`
+
+Child rendering now supports walking `[]Ren` and `[]T where T is Ren`.
+
 ### `v0.2.0`
 
 API revision. Now supports both the append-only style via `Bui.E` and the expression style via free `E`. Mix and match for simpler code.

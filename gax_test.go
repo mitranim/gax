@@ -2,12 +2,12 @@ package gax
 
 import (
 	"fmt"
-	"reflect"
+	r "reflect"
 	"strings"
 	"testing"
 )
 
-func Test_E_and_F(_ *testing.T) {
+func Test_E_and_F(t *testing.T) {
 	bui := F(
 		Str(Doctype),
 		E(`html`, AP(`lang`, `en`),
@@ -26,6 +26,7 @@ func Test_E_and_F(_ *testing.T) {
 	)
 
 	eqs(
+		t,
 		strings.TrimSpace(`
 			<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>
 		`),
@@ -33,7 +34,7 @@ func Test_E_and_F(_ *testing.T) {
 	)
 }
 
-func Test_Bui_E(_ *testing.T) {
+func Test_Bui_E(t *testing.T) {
 	bui := Bui(Doctype)
 	E := bui.E
 
@@ -52,6 +53,7 @@ func Test_Bui_E(_ *testing.T) {
 	})
 
 	eqs(
+		t,
 		strings.TrimSpace(`
 			<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>
 		`),
@@ -59,13 +61,13 @@ func Test_Bui_E(_ *testing.T) {
 	)
 }
 
-func Test_Bui_Attr(_ *testing.T) {
+func Test_Bui_Attr(t *testing.T) {
 	var bui Bui
 	bui.Attr(Attr{`class`, `<one>&"</one>`})
-	eqs(` class="<one>&amp;&quot;</one>"`, bui)
+	eqs(t, ` class="<one>&amp;&quot;</one>"`, bui)
 }
 
-func Test_Bui_Attrs(_ *testing.T) {
+func Test_Bui_Attrs(t *testing.T) {
 	var bui Bui
 
 	bui.Attrs(
@@ -73,30 +75,98 @@ func Test_Bui_Attrs(_ *testing.T) {
 		Attr{`style`, `<two>&"</two>`},
 	)
 
-	eqs(` class="<one>&amp;&quot;</one>" style="<two>&amp;&quot;</two>"`, bui)
+	eqs(t, ` class="<one>&amp;&quot;</one>" style="<two>&amp;&quot;</two>"`, bui)
 }
 
-func Test_Bui_EscString(_ *testing.T) {
+func Test_Bui_EscString(t *testing.T) {
 	var bui Bui
 	bui.EscString(`<one>&"</one>`)
-	eqs(`&lt;one&gt;&amp;"&lt;/one&gt;`, bui)
+	eqs(t, `&lt;one&gt;&amp;"&lt;/one&gt;`, bui)
 }
 
-func Test_Bui_EscBytes(_ *testing.T) {
+func Test_Bui_EscBytes(t *testing.T) {
 	var bui Bui
 	bui.EscBytes([]byte(`<one>&"</one>`))
-	eqs(`&lt;one&gt;&amp;"&lt;/one&gt;`, bui)
+	eqs(t, `&lt;one&gt;&amp;"&lt;/one&gt;`, bui)
 }
 
-func Test_Bui_Child(t *testing.T) {
-	test := func(exp string, val interface{}) {
-		var bui Bui
-		bui.Child(val)
-		eqs(exp, bui)
-	}
+func Test_Bui_Child_escaping(t *testing.T) {
+	test := childTest(t)
+	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, `<one>&"</one>`)
+	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, []byte(`<one>&"</one>`))
+}
+
+func Test_Bui_Child_Ren(t *testing.T) {
+	test := childTest(t)
+
+	test(`str`, Str(`str`))
+	test(`str`, Bui(`str`))
+
+	test(
+		`<one>&"</one>`,
+		Str(`<one>&"</one>`),
+	)
+
+	test(
+		`<one>&"</one>`,
+		Bui(`<one>&"</one>`),
+	)
+
+	test(
+		`<a>one</a><bui>two</bui><c>three</c>`,
+		Str(`<a>one</a><bui>two</bui><c>three</c>`),
+	)
+
+	test(
+		`<a>one</a><bui>two</bui><c>three</c>`,
+		Bui(`<a>one</a><bui>two</bui><c>three</c>`),
+	)
+
+	test(
+		`<one two="three">four</one>`,
+		E(`one`, AP(`two`, `three`), `four`),
+	)
+}
+
+func Test_Bui_Child_slices(t *testing.T) {
+	test := childTest(t)
+
+	test(`10str20`, []interface{}{10, nil, "str", []interface{}{nil, 20}})
+
+	test(
+		`<one></one>two<three></three>`,
+		[]Ren{
+			E(`one`, nil),
+			nil,
+			Str(`two`),
+			nil,
+			E(`three`, nil),
+		},
+	)
+
+	test(
+		`<one></one><></><two></two>`,
+		[]Elem{
+			E(`one`, nil),
+			Elem{},
+			E(`two`, nil),
+		},
+	)
+}
+
+func Test_Bui_Child_funcs(t *testing.T) {
+	test := childTest(t)
+
+	test(``, (*func())(nil))
+	test(``, (*func(*Bui))(nil))
+	test(`<div></div>`, func(b *Bui) { b.E(`div`, nil) })
+	test(`str`, func(b *Bui) { b.T(`str`) })
+}
+
+func Test_Bui_Child_misc(t *testing.T) {
+	test := childTest(t)
 
 	test(``, nil)
-	test(``, (*func())(nil))
 	test(`str`, "str")
 	test(`str`, []byte("str"))
 	test(`false`, false)
@@ -112,140 +182,138 @@ func Test_Bui_Child(t *testing.T) {
 	test(`-12.34`, float32(-12.34))
 	test(`-12.34`, float64(-12.34))
 	test(`[10 20 30]`, []int{10, 20, 30})
-	test(`10str20`, []interface{}{10, nil, "str", []interface{}{nil, 20}})
-	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, `<one>&"</one>`)
-	test(`&lt;one&gt;&amp;"&lt;/one&gt;`, []byte(`<one>&"</one>`))
-
-	test(`<div></div>`, func(b *Bui) { b.E(`div`, nil) })
-	test(`str`, func(b *Bui) { b.T(`str`) })
-
-	t.Run("do_not_escape_special_type", func(_ *testing.T) {
-		test(`<one>&"</one>`, Str(`<one>&"</one>`))
-		test(`<one>&"</one>`, Bui(`<one>&"</one>`))
-		test(`<a>one</a><bui>two</bui><c>three</c>`, Str(`<a>one</a><bui>two</bui><c>three</c>`))
-		test(`<a>one</a><bui>two</bui><c>three</c>`, Bui(`<a>one</a><bui>two</bui><c>three</c>`))
-	})
 }
 
-func Test_F(_ *testing.T) {
-	fun := func(b *Bui) { b.E(`html`, AP(`lang`, `en`)) }
+func childTest(t testing.TB) func(string, interface{}) {
+	return func(exp string, val interface{}) {
+		var bui Bui
+		bui.Child(val)
+		eqs(t, exp, bui)
+	}
+}
+
+func Test_F(t *testing.T) {
 	eqs(
+		t,
 		`<!doctype html><html lang="en"></html>`,
-		F(Str(Doctype), fun),
+		F(
+			Str(Doctype),
+			func(b *Bui) { b.E(`html`, AP(`lang`, `en`)) },
+		),
 	)
 }
 
 // Incomplete test; should also verify zero-alloc.
-func Test_Bui_Bytes(_ *testing.T) {
-	eqs(`<div>hello world!</div>`, Bui(`<div>hello world!</div>`))
+func Test_Bui_Bytes(t *testing.T) {
+	eqs(t, `<div>hello world!</div>`, Bui(`<div>hello world!</div>`))
 }
 
 // Incomplete test; should also verify zero-alloc.
-func Test_Bui_String(_ *testing.T) {
-	eq(`<div>hello world!</div>`, Bui(`<div>hello world!</div>`).String())
-	eq(`<div>hello world!</div>`, string(Bui(`<div>hello world!</div>`)))
+func Test_Bui_String(t *testing.T) {
+	eq(t, `<div>hello world!</div>`, Bui(`<div>hello world!</div>`).String())
+	eq(t, `<div>hello world!</div>`, string(Bui(`<div>hello world!</div>`)))
 }
 
-func Test_AttrWri_Write(_ *testing.T) {
+func Test_AttrWri_Write(t *testing.T) {
 	var wri AttrWri
 	tryInt(wri.Write([]byte("A&B\u00a0C\"D<E>F")))
-	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
-func Test_AttrWri_WriteString(_ *testing.T) {
+func Test_AttrWri_WriteString(t *testing.T) {
 	var wri AttrWri
 	tryInt(wri.WriteString("A&B\u00a0C\"D<E>F"))
-	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
-func Test_AttrWri_WriteRune(_ *testing.T) {
+func Test_AttrWri_WriteRune(t *testing.T) {
 	var wri AttrWri
 
 	tryInt(wri.WriteRune('A'))
-	eqs(`A`, wri)
+	eqs(t, `A`, wri)
 
 	tryInt(wri.WriteRune('&'))
-	eqs(`A&amp;`, wri)
+	eqs(t, `A&amp;`, wri)
 
 	tryInt(wri.WriteRune('B'))
-	eqs(`A&amp;B`, wri)
+	eqs(t, `A&amp;B`, wri)
 
 	tryInt(wri.WriteRune('\u00a0'))
-	eqs(`A&amp;B&nbsp;`, wri)
+	eqs(t, `A&amp;B&nbsp;`, wri)
 
 	tryInt(wri.WriteRune('C'))
-	eqs(`A&amp;B&nbsp;C`, wri)
+	eqs(t, `A&amp;B&nbsp;C`, wri)
 
 	tryInt(wri.WriteRune('"'))
-	eqs(`A&amp;B&nbsp;C&quot;`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;`, wri)
 
 	tryInt(wri.WriteRune('D'))
-	eqs(`A&amp;B&nbsp;C&quot;D`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D`, wri)
 
 	tryInt(wri.WriteRune('<'))
-	eqs(`A&amp;B&nbsp;C&quot;D<`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<`, wri)
 
 	tryInt(wri.WriteRune('E'))
-	eqs(`A&amp;B&nbsp;C&quot;D<E`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<E`, wri)
 
 	tryInt(wri.WriteRune('>'))
-	eqs(`A&amp;B&nbsp;C&quot;D<E>`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<E>`, wri)
 
 	tryInt(wri.WriteRune('F'))
-	eqs(`A&amp;B&nbsp;C&quot;D<E>F`, wri)
+	eqs(t, `A&amp;B&nbsp;C&quot;D<E>F`, wri)
 }
 
-func Test_TextWri_Write(_ *testing.T) {
+func Test_TextWri_Write(t *testing.T) {
 	var wri TextWri
 	tryInt(wri.Write([]byte("A&B\u00a0C\"D<E>F")))
-	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
 }
 
-func Test_TextWri_WriteString(_ *testing.T) {
+func Test_TextWri_WriteString(t *testing.T) {
 	var wri TextWri
 	tryInt(wri.WriteString("A&B\u00a0C\"D<E>F"))
-	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
 }
 
-func Test_TextWri_WriteRune(_ *testing.T) {
+func Test_TextWri_WriteRune(t *testing.T) {
 	var wri TextWri
 
 	tryInt(wri.WriteRune('A'))
-	eqs(`A`, wri)
+	eqs(t, `A`, wri)
 
 	tryInt(wri.WriteRune('&'))
-	eqs(`A&amp;`, wri)
+	eqs(t, `A&amp;`, wri)
 
 	tryInt(wri.WriteRune('B'))
-	eqs(`A&amp;B`, wri)
+	eqs(t, `A&amp;B`, wri)
 
 	tryInt(wri.WriteRune('\u00a0'))
-	eqs(`A&amp;B&nbsp;`, wri)
+	eqs(t, `A&amp;B&nbsp;`, wri)
 
 	tryInt(wri.WriteRune('C'))
-	eqs(`A&amp;B&nbsp;C`, wri)
+	eqs(t, `A&amp;B&nbsp;C`, wri)
 
 	tryInt(wri.WriteRune('"'))
-	eqs(`A&amp;B&nbsp;C"`, wri)
+	eqs(t, `A&amp;B&nbsp;C"`, wri)
 
 	tryInt(wri.WriteRune('D'))
-	eqs(`A&amp;B&nbsp;C"D`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D`, wri)
 
 	tryInt(wri.WriteRune('<'))
-	eqs(`A&amp;B&nbsp;C"D&lt;`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;`, wri)
 
 	tryInt(wri.WriteRune('E'))
-	eqs(`A&amp;B&nbsp;C"D&lt;E`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;E`, wri)
 
 	tryInt(wri.WriteRune('>'))
-	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;E&gt;`, wri)
 
 	tryInt(wri.WriteRune('F'))
-	eqs(`A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
+	eqs(t, `A&amp;B&nbsp;C"D&lt;E&gt;F`, wri)
 }
 
 func TestElem_GoString(t *testing.T) {
-	eq(
+	eq(t,
 		"E(`div`, AP(`class`, `one`), `two`, 10, `three`)",
 		fmt.Sprintf(
 			`%#v`,
@@ -255,7 +323,7 @@ func TestElem_GoString(t *testing.T) {
 }
 
 func TestA_GoString(t *testing.T) {
-	eq(
+	eq(t,
 		"AP(`one`, `two`, `three`, `four`)",
 		fmt.Sprintf(
 			`%#v`,
@@ -265,62 +333,72 @@ func TestA_GoString(t *testing.T) {
 }
 
 func TestVac(t *testing.T) {
-	eq(nil, Vac(nil))
-	eq(nil, Vac((*string)(nil)))
-	eq(nil, Vac([]interface{}{}))
-	eq(nil, Vac([]interface{}{nil}))
-	eq(nil, Vac([]interface{}{nil, (*string)(nil)}))
-	eq(nil, Vac([]byte(nil)))
-	eq(nil, Vac(Bui(nil)))
+	eq(t, nil, Vac(nil))
+	eq(t, nil, Vac((*string)(nil)))
+	eq(t, nil, Vac([]interface{}{}))
+	eq(t, nil, Vac([]interface{}{nil}))
+	eq(t, nil, Vac([]interface{}{nil, (*string)(nil)}))
+	eq(t, nil, Vac([]byte(nil)))
+	eq(t, nil, Vac(Bui(nil)))
 
-	eq("", Vac(""))
-	eq(0, Vac(0))
-	eq([]interface{}{""}, Vac([]interface{}{""}))
-	eq([]interface{}{0}, Vac([]interface{}{0}))
+	eq(t, "", Vac(""))
+	eq(t, 0, Vac(0))
+	eq(t, []interface{}{""}, Vac([]interface{}{""}))
+	eq(t, []interface{}{0}, Vac([]interface{}{0}))
 }
 
 func TestNonEscWri_grow(t *testing.T) {
 	var wri NonEscWri
 
-	eq(0, len(wri))
-	eq(0, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 0, cap(wri))
 
 	wri.grow(1)
-	eq(0, len(wri))
-	eq(1, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 1, cap(wri))
 
 	wri.grow(11)
-	eq(0, len(wri))
-	eq(13, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 13, cap(wri))
 
 	wri.grow(7)
-	eq(0, len(wri))
-	eq(13, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 13, cap(wri))
 
 	wri = wri[:1][1:]
-	eq(0, len(wri))
-	eq(12, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 12, cap(wri))
 
 	wri.grow(7)
-	eq(0, len(wri))
-	eq(12, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 12, cap(wri))
 
 	wri.grow(11)
-	eq(0, len(wri))
-	eq(12, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 12, cap(wri))
 
 	wri.grow(13)
-	eq(0, len(wri))
-	eq(37, cap(wri))
+	eq(t, 0, len(wri))
+	eq(t, 37, cap(wri))
 }
 
-func eqs(exp string, act []byte) {
-	eq(exp, string(act))
+func eqs(t testing.TB, exp string, act []byte) {
+	eq(t, exp, string(act))
 }
 
-func eq(exp, act interface{}) {
-	if !reflect.DeepEqual(exp, act) {
-		panic(fmt.Errorf("expected:\n%+v\ngot:\n%+v\n", exp, act))
+func eq(t testing.TB, exp, act interface{}) {
+	t.Helper()
+	if !r.DeepEqual(exp, act) {
+		t.Fatalf(`
+expected (detailed):
+	%#[1]v
+actual (detailed):
+	%#[2]v
+expected (simple):
+	%[1]v
+actual (simple):
+	%[2]v
+`, exp, act)
 	}
 }
 
