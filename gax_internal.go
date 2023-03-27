@@ -57,7 +57,7 @@ func invalidTagOrAttr(val string) bool {
 	return strings.ContainsAny(val, " \t\n\r\v<>\"=")
 }
 
-func isNil(val interface{}) bool {
+func isNil(val any) bool {
 	return val == nil || isRvalNil(r.ValueOf(val))
 }
 

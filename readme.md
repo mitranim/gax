@@ -2,16 +2,19 @@
 
 Simple system for writing HTML/XML as Go code. Better-performing replacement for `html/template` and `text/template`. Vaguely inspired by JS library https://github.com/mitranim/prax.
 
-Features / benefits:
+Advantages over string-based templating:
 
   * No weird special language to learn.
-  * Use actual Go code.
-  * Use normal Go conditionals.
-  * Use normal Go loops.
-  * Use normal Go functions.
-  * Benefit from static typing.
-  * Benefit from Go code analysis.
-  * Benefit from Go performance.
+  * Normal Go code.
+  * Normal Go conditionals.
+  * Normal Go loops.
+  * Normal Go functions.
+  * Normal Go static typing.
+  * Normal Go code analysis.
+  * Much better performance.
+
+Other features / benefits:
+
   * Tiny and dependency-free (only stdlib).
 
 ## TOC
@@ -32,12 +35,12 @@ package main
 import (
   "fmt"
 
-  x "github.com/mitranim/gax"
+  gax "github.com/mitranim/gax"
 )
 
 var (
-  E  = x.E
-  AP = x.AP
+  E  = gax.E
+  AP = gax.AP
 )
 
 func main() {
@@ -45,20 +48,20 @@ func main() {
   // <!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:;base64,="><title>Posts</title></head><body><h1 class="title">Posts</h1><h2>Post0</h2><h2>Post1</h2></body></html>
 }
 
-func Page(dat Dat) x.Bui {
-  return x.F(
-    x.Str(x.Doctype),
+func Page(dat Dat) gax.Bui {
+  return gax.F(
+    gax.Str(gax.Doctype),
     E(`html`, AP(`lang`, `en`),
       E(`head`, nil,
         E(`meta`, AP(`charset`, `utf-8`)),
         E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`)),
 
         // Use normal Go conditionals.
-        func(b *x.Bui) {
-          if dat.Title != "" {
-            b.E(`title`, nil, dat.Title)
+        func(bui *gax.Bui) {
+          if dat.Title != `` {
+            bui.E(`title`, nil, dat.Title)
           } else {
-            b.E(`title`, nil, `test markup`)
+            bui.E(`title`, nil, `test markup`)
           }
         },
       ),
@@ -67,9 +70,9 @@ func Page(dat Dat) x.Bui {
         E(`h1`, AP(`class`, `title`), `Posts`),
 
         // Use normal Go loops.
-        func(b *x.Bui) {
+        func(bui *gax.Bui) {
           for _, post := range dat.Posts {
-            b.E(`h2`, nil, post)
+            bui.E(`h2`, nil, post)
           }
         },
       ),
@@ -90,9 +93,9 @@ type Dat struct {
 
 ## Performance
 
-Gax easily beats `text/template` and `html/template`. The more dynamic a template is, the better it gets.
+Gax easily beats `text/template` and `html/template`. The more complex a template is, the better it gets.
 
-The static benchmark is "unfair" because it renders just once into a global variable. This is recommended for all completely static markup. Prerendering is also possible with `text/template` and `html/template`, but syntactically inconvenient and usually avoided. With Gax it's syntactically convenient and easily done, and the benchmark reflects that.
+The static benchmark is "unfair" because the Gax version renders just once into a global variable. This is recommended for all completely static markup. Prerendering is also possible with `text/template` and `html/template`, but syntactically inconvenient and usually avoided. With Gax it's syntactically convenient and easily done, and the benchmark reflects that.
 
 The dynamic benchmark is intentionally naive, avoiding some Gax optimizations such as static prerender, to mimic simple user code.
 
@@ -109,6 +112,13 @@ Benchmark_gax_dynamic-12          70465    17090 ns/op  10376 B/op   169 allocs/
 ```
 
 ## Changelog
+
+### `v0.3.0`
+
+* Renamed `.Append` to `.AppendTo` for consistency with other libraries.
+* `Elem` with empty `.Tag` no longer renders anything. As a result, zero value of `Elem` is the same as nil. This can be convenient for functions that return `Elem`.
+* Added `LinkBlank`.
+* Require Go 1.20.
 
 ### `v0.2.1`
 

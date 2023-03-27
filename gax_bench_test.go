@@ -175,7 +175,7 @@ var tplStatic = templateMake(nil, `
 
 func renderDynamic(dat MockDat) Bui {
 	var scheme Attr
-	if dat.ColorScheme != "" {
+	if dat.ColorScheme != `` {
 		scheme = Attr{`class`, dat.ColorScheme}
 	}
 
@@ -185,22 +185,22 @@ func renderDynamic(dat MockDat) Bui {
 			E(`head`, nil, func(b *Bui) {
 				b.E(`link`, AP(`rel`, `icon`, `href`, `data:;base64,=`))
 
-				if dat.Title != "" {
+				if dat.Title != `` {
 					b.E(`title`, nil, dat.Title)
 					b.E(`meta`, AP(`property`, `og:title`, `content`, dat.Title))
 				} else {
 					b.E(`title`, nil, `mock site`)
 				}
 
-				if dat.Desc != "" {
+				if dat.Desc != `` {
 					b.E(`meta`, AP(`name`, `description`, `content`, dat.Desc))
 				}
 
-				if dat.Image != "" {
+				if dat.Image != `` {
 					b.E(`meta`, AP(`property`, `og:image`, `content`, `/images/`+dat.Image))
 				}
 
-				if dat.Type != "" {
+				if dat.Type != `` {
 					b.E(`meta`, AP(`property`, `og:type`, `content`, dat.Type))
 					b.E(`meta`, AP(`property`, `og:site_name`, `content`, `mock site`))
 				}
@@ -227,7 +227,7 @@ func renderDynamic(dat MockDat) Bui {
 								b.E(`h2`, nil, func() {
 									b.E(`a`, AP(`href`, post.Path), post.Title)
 								})
-								if post.Desc != "" {
+								if post.Desc != `` {
 									b.E(`p`, nil, post.Desc)
 								}
 							}
@@ -305,14 +305,14 @@ var tplDynamic = templateMake(
 )
 
 func templateMake(funs template.FuncMap, str string) *template.Template {
-	tpl := template.New("")
+	tpl := template.New(``)
 	tpl.Option(`missingkey=error`)
 	tpl.Funcs(funs)
 	template.Must(tpl.Parse(trimLines(str)))
 	return tpl
 }
 
-func templateToString(tpl *template.Template, val interface{}) string {
+func templateToString(tpl *template.Template, val any) string {
 	var buf strings.Builder
 	must(tpl.Execute(&buf, val))
 	return buf.String()
@@ -333,7 +333,7 @@ func curFun(dat MockDat, path string) template.HTMLAttr {
 }
 
 func trimLines(str string) string {
-	return strings.TrimSpace(strings.Join(reLines.Split(str, -1), ""))
+	return strings.TrimSpace(strings.Join(reLines.Split(str, -1), ``))
 }
 
 var reLines = regexp.MustCompile(`\s*(?:\r|\n)\s*`)

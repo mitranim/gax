@@ -17,8 +17,8 @@ func AP(pairs ...string) Attrs {
 }
 
 /*
-Short for "attributes". List of arbitrary HTML/XML attributes. Usually passed to
-`Bui.E`.
+Short for "attributes". List of arbitrary HTML/XML attributes. Used by `Elem`.
+Usually passed to `E` or `Bui.E`.
 */
 type Attrs []Attr
 
@@ -39,28 +39,28 @@ func (self Attrs) AP(pairs ...string) Attrs {
 		panic(fmt.Errorf(`[gax] AP expects an even amount of args, got %#v`, pairs))
 	}
 
-	i := 0
-	for i < len(pairs) {
-		key := pairs[i]
-		i++
-		val := pairs[i]
-		i++
+	ind := 0
+	for ind < len(pairs) {
+		key := pairs[ind]
+		ind++
+		val := pairs[ind]
+		ind++
 		self = append(self, Attr{key, val})
 	}
 	return self
 }
 
 // Mostly for internal use.
-func (self Attrs) Append(buf []byte) []byte {
+func (self Attrs) AppendTo(buf []byte) []byte {
 	for _, val := range self {
-		buf = val.Append(buf)
+		buf = val.AppendTo(buf)
 	}
 	return buf
 }
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self Attrs) String() string {
-	return NonEscWri(self.Append(nil)).String()
+	return NonEscWri(self.AppendTo(nil)).String()
 }
 
 /*
@@ -117,7 +117,7 @@ spec compliance, or the attr may be omitted entirely.
 func (self Attr) Value() string { return self[1] }
 
 // Mostly for internal use.
-func (self Attr) Append(buf []byte) []byte {
+func (self Attr) AppendTo(buf []byte) []byte {
 	if self == (Attr{}) {
 		return buf
 	}
@@ -143,5 +143,5 @@ func (self Attr) Append(buf []byte) []byte {
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self Attr) String() string {
-	return NonEscWri(self.Append(nil)).String()
+	return NonEscWri(self.AppendTo(nil)).String()
 }

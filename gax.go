@@ -73,13 +73,13 @@ var Void = newStringSet(
 Short for "vacate", "vacuum", "vacuous". Takes a "child" intended for `E` or
 `F`. If the child is empty, returns `nil`, otherwise returns the child as-is.
 Empty is defined as containing only nils. Just like `E` and `F`, this
-recursively walks `[]interface{}`.
+recursively walks `[]any`.
 */
-func Vac(val interface{}) interface{} {
+func Vac(val any) any {
 	inout := val
 
 	switch val := val.(type) {
-	case []interface{}:
+	case []any:
 		for _, val := range val {
 			if Vac(val) != nil {
 				return inout
@@ -92,5 +92,16 @@ func Vac(val interface{}) interface{} {
 			return inout
 		}
 		return nil
+	}
+}
+
+/*
+Shortcut for `target="_blank" rel="noopener noreferrer"`, which must always be
+used together, which is easy to forget.
+*/
+func LinkBlank() Attrs {
+	return Attrs{
+		Attr{`target`, `_blank`},
+		Attr{`rel`, `noopener noreferrer`},
 	}
 }

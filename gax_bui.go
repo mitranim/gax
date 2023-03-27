@@ -9,7 +9,7 @@ import (
 Short for "fragment" or "document fragment". Shortcut for making `Bui` with
 these children.
 */
-func F(vals ...interface{}) (bui Bui) {
+func F(vals ...any) (bui Bui) {
 	bui.F(vals...)
 	return
 }
@@ -44,7 +44,7 @@ Special rules for children:
 
 	* `nil` is ignored.
 	* `func()`, `func(*Bui)`, or `Ren.Render` is called for side effects.
-	* `[]interface{}` is recursively walked.
+	* `[]any` is recursively walked.
 	* `[]Ren` is walked, calling `Ren.Render` on each val.
 	* `[]T` where `T` implements `Ren` is walked, calling `Ren.Render` on each val.
 	* Other values are stringified and escaped via `TextWri`.
@@ -52,7 +52,7 @@ Special rules for children:
 To write text without escaping, use `Str` for strings and `Bui` for byte
 slices.
 */
-func (self *Bui) E(tag string, attrs Attrs, children ...interface{}) {
+func (self *Bui) E(tag string, attrs Attrs, children ...any) {
 	self.Begin(tag, attrs)
 	self.F(children...)
 	self.End(tag)
@@ -91,7 +91,7 @@ func (self *Bui) End(tag string) {
 Mostly for internal use. Writes HTML/XML attributes. Supports HTML special
 cases; see `Bui.Attr`.
 */
-func (self *Bui) Attrs(vals ...Attr) { *self = Bui(Attrs(vals).Append(*self)) }
+func (self *Bui) Attrs(vals ...Attr) { *self = Bui(Attrs(vals).AppendTo(*self)) }
 
 /*
 Mostly for internal use. Writes an HTML/XML attribute, preceded with a space.
@@ -100,18 +100,18 @@ adjusted for spec compliance. Automatically escapes the attribute value.
 
 Sanity-checks the attribute name. Using an invalid name causes a panic.
 */
-func (self *Bui) Attr(val Attr) { *self = Bui(val.Append(*self)) }
+func (self *Bui) Attr(val Attr) { *self = Bui(val.AppendTo(*self)) }
 
 // Writes multiple children via `Bui.Child`. Like the "tail part" of `Bui.E`.
 // Counterpart to the function `F`.
-func (self *Bui) F(vals ...interface{}) {
+func (self *Bui) F(vals ...any) {
 	for _, val := range vals {
 		self.Child(val)
 	}
 }
 
 // Shorter alias for `Bui.Child`.
-func (self *Bui) C(val interface{}) { self.Child(val) }
+func (self *Bui) C(val any) { self.Child(val) }
 
 /*
 Mostly for internal use. Writes regular text without escaping. For writing
@@ -148,11 +148,14 @@ func (self *Bui) EscString(val string) {
 // Shorter alias for `Bui.EscString`.
 func (self *Bui) T(val string) { self.EscString(val) }
 
+// Shorter alias for `Bui.EscString`.
+func (self *Bui) Text(val string) { self.EscString(val) }
+
 /*
 Mostly for internal use. Writes an arbitrary child. See `Bui.E` for the list of
 special rules.
 */
-func (self *Bui) Child(val interface{}) {
+func (self *Bui) Child(val any) {
 	switch val := val.(type) {
 	case nil:
 	case string:
@@ -171,7 +174,7 @@ func (self *Bui) Child(val interface{}) {
 			val(self)
 		}
 
-	case func() interface{}:
+	case func() any:
 		if val != nil {
 			self.Child(val())
 		}
@@ -181,7 +184,7 @@ func (self *Bui) Child(val interface{}) {
 			val.Render(self)
 		}
 
-	case []interface{}:
+	case []any:
 		self.F(val...)
 
 	case []Ren:
@@ -196,7 +199,7 @@ func (self *Bui) Child(val interface{}) {
 	}
 }
 
-func (self *Bui) unknown(src interface{}) {
+func (self *Bui) unknown(src any) {
 	if src == nil {
 		return
 	}
@@ -209,8 +212,8 @@ func (self *Bui) unknown(src interface{}) {
 	typ := val.Type()
 
 	if typ.Kind() == r.Slice && typ.Elem().Implements(typeRen) {
-		for i := range iter(val.Len()) {
-			val.Index(i).Convert(typeRen).Interface().(Ren).Render(self)
+		for ind := range iter(val.Len()) {
+			val.Index(ind).Convert(typeRen).Interface().(Ren).Render(self)
 		}
 		return
 	}

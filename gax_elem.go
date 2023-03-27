@@ -6,12 +6,13 @@ import (
 
 /*
 Primary API. Short for "element" or "HTML element". Expresses an HTML/XML tag,
-with attributes and inner content. The resulting element can render itself, or
-be passed as a child to `F` or `Bui.E`.
+with attributes and inner content. Creates an instance of `Elem`, which
+implements the `Ren` interface. It can render itself as HTML/XML, or be passed
+as a child to `F`, `E`, `Bui.E`.
 
 For special rules regarding child encoding, see `Bui.E`.
 */
-func E(tag string, attrs Attrs, child ...interface{}) Elem {
+func E(tag string, attrs Attrs, child ...any) Elem {
 	return Elem{tag, attrs, child}
 }
 
@@ -22,16 +23,21 @@ passed as a child to `F` or `Bui.E`.
 type Elem struct {
 	Tag   string
 	Attrs Attrs
-	Child interface{}
+	Child any
 }
 
 var _ = Ren(Elem{})
 
 /*
 Implement `Ren`. This allows `Elem` to be passed as a child to the various
-rendering functions like `E`, `F`, `Bui.E`.
+rendering functions like `E`, `F`, `Bui.E`. As a special case, `Elem` with
+an empty `.Tag` does not render anything.
 */
-func (self Elem) Render(b *Bui) { b.E(self.Tag, self.Attrs, self.Child) }
+func (self Elem) Render(b *Bui) {
+	if self.Tag != `` {
+		b.E(self.Tag, self.Attrs, self.Child)
+	}
+}
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self Elem) String() string { return F(self).String() }
@@ -52,10 +58,10 @@ func (self Elem) GoString() string {
 	return buf.String()
 }
 
-func appendElemChild(buf NonEscWri, val interface{}) NonEscWri {
+func appendElemChild(buf NonEscWri, val any) NonEscWri {
 	switch val := val.(type) {
 	case nil:
-	case []interface{}:
+	case []any:
 		for _, val := range val {
 			buf = appendElemChild(buf, val)
 		}

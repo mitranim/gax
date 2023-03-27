@@ -4,8 +4,8 @@ import "unicode/utf8"
 
 /*
 Short for "non-escaping writer". Mostly for internal use. Similar to
-`bytes.Buffer` or `strings.Builder`, but simpler and more flexible, being just
-a byte slice.
+`bytes.Buffer` or `strings.Builder`, but simpler and more flexible,
+because it's just a typedef of `[]byte`.
 */
 type NonEscWri []byte
 

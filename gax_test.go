@@ -131,7 +131,7 @@ func Test_Bui_Child_Ren(t *testing.T) {
 func Test_Bui_Child_slices(t *testing.T) {
 	test := childTest(t)
 
-	test(`10str20`, []interface{}{10, nil, "str", []interface{}{nil, 20}})
+	test(`10str20`, []any{10, nil, "str", []any{nil, 20}})
 
 	test(
 		`<one></one>two<three></three>`,
@@ -145,7 +145,7 @@ func Test_Bui_Child_slices(t *testing.T) {
 	)
 
 	test(
-		`<one></one><></><two></two>`,
+		`<one></one><two></two>`,
 		[]Elem{
 			E(`one`, nil),
 			Elem{},
@@ -184,8 +184,8 @@ func Test_Bui_Child_misc(t *testing.T) {
 	test(`[10 20 30]`, []int{10, 20, 30})
 }
 
-func childTest(t testing.TB) func(string, interface{}) {
-	return func(exp string, val interface{}) {
+func childTest(t testing.TB) func(string, any) {
+	return func(exp string, val any) {
 		var bui Bui
 		bui.Child(val)
 		eqs(t, exp, bui)
@@ -317,7 +317,7 @@ func TestElem_GoString(t *testing.T) {
 		"E(`div`, AP(`class`, `one`), `two`, 10, `three`)",
 		fmt.Sprintf(
 			`%#v`,
-			E(`div`, AP(`class`, `one`), `two`, []interface{}{10, `three`}),
+			E(`div`, AP(`class`, `one`), `two`, []any{10, `three`}),
 		),
 	)
 }
@@ -335,16 +335,16 @@ func TestA_GoString(t *testing.T) {
 func TestVac(t *testing.T) {
 	eq(t, nil, Vac(nil))
 	eq(t, nil, Vac((*string)(nil)))
-	eq(t, nil, Vac([]interface{}{}))
-	eq(t, nil, Vac([]interface{}{nil}))
-	eq(t, nil, Vac([]interface{}{nil, (*string)(nil)}))
+	eq(t, nil, Vac([]any{}))
+	eq(t, nil, Vac([]any{nil}))
+	eq(t, nil, Vac([]any{nil, (*string)(nil)}))
 	eq(t, nil, Vac([]byte(nil)))
 	eq(t, nil, Vac(Bui(nil)))
 
 	eq(t, "", Vac(""))
 	eq(t, 0, Vac(0))
-	eq(t, []interface{}{""}, Vac([]interface{}{""}))
-	eq(t, []interface{}{0}, Vac([]interface{}{0}))
+	eq(t, []any{""}, Vac([]any{""}))
+	eq(t, []any{0}, Vac([]any{0}))
 }
 
 func TestNonEscWri_grow(t *testing.T) {
@@ -386,7 +386,7 @@ func eqs(t testing.TB, exp string, act []byte) {
 	eq(t, exp, string(act))
 }
 
-func eq(t testing.TB, exp, act interface{}) {
+func eq(t testing.TB, exp, act any) {
 	t.Helper()
 	if !r.DeepEqual(exp, act) {
 		t.Fatalf(`
