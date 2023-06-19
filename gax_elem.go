@@ -1,8 +1,6 @@
 package gax
 
-import (
-	"fmt"
-)
+import "fmt"
 
 /*
 Primary API. Short for "element" or "HTML element". Expresses an HTML/XML tag,
@@ -13,6 +11,9 @@ as a child to `F`, `E`, `Bui.E`.
 For special rules regarding child encoding, see `Bui.E`.
 */
 func E(tag string, attrs Attrs, child ...any) Elem {
+	if child == nil {
+		return Elem{tag, attrs, nil}
+	}
 	return Elem{tag, attrs, child}
 }
 
@@ -41,6 +42,17 @@ func (self Elem) Render(b *Bui) {
 
 // Implement `fmt.Stringer` for debug purposes. Not used by builder methods.
 func (self Elem) String() string { return F(self).String() }
+
+// Returns a modified version where `.Attrs` contain an attribute with
+func (self Elem) AttrSet(key, val string) Elem {
+	self.Attrs = self.Attrs.Set(key, val)
+	return self
+}
+
+func (self Elem) AttrAdd(key, val string) Elem {
+	self.Attrs = self.Attrs.Add(key, val)
+	return self
+}
 
 /*
 Implement `fmt.GoStringer` for debug purposes. Not used by builder methods.

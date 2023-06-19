@@ -113,6 +113,10 @@ Benchmark_gax_dynamic-12          70465    17090 ns/op  10376 B/op   169 allocs/
 
 ## Changelog
 
+### `v0.3.1`
+
+Added various attribute-manipulating methods to `Attr`, `Attrs`, `Elem`.
+
 ### `v0.3.0`
 
 * Renamed `.Append` to `.AppendTo` for consistency with other libraries.

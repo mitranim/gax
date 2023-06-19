@@ -13,6 +13,9 @@ Short for "attributes from pairs". Recommended way to write attributes, due to
 its brevity. Symmetric with `Attrs.AP`.
 */
 func AP(pairs ...string) Attrs {
+	if pairs == nil {
+		return nil
+	}
 	return make(Attrs, 0, len(pairs)/2).AP(pairs...)
 }
 
@@ -36,7 +39,7 @@ Panics if the argument count is not even.
 */
 func (self Attrs) AP(pairs ...string) Attrs {
 	if len(pairs)%2 != 0 {
-		panic(fmt.Errorf(`[gax] AP expects an even amount of args, got %#v`, pairs))
+		panic(fmt.Errorf(`[gax] Attrs.AP expects an even amount of args, got %#v`, pairs))
 	}
 
 	ind := 0
@@ -48,6 +51,46 @@ func (self Attrs) AP(pairs ...string) Attrs {
 		self = append(self, Attr{key, val})
 	}
 	return self
+}
+
+/*
+Returns a modified version where each attribute with the matching key is
+modified via `Attr.Set` to have the given value. If no matching attribute is
+found, appends the given key-value as a new attribute. As a special case, if
+the key is empty, returns self as-is.
+*/
+func (self Attrs) Set(key, val string) Attrs {
+	return self.mut(key, val, Attr.Set)
+}
+
+/*
+Returns a modified version where each attribute with the matching key is
+modified via `Attr.Add` to append the given value to the previous value,
+space-separated. If no matching attribute is found, appends the given key-value
+as a new attribute. As a special case, if the key is empty, returns self
+as-is.
+*/
+func (self Attrs) Add(key, val string) Attrs {
+	return self.mut(key, val, Attr.Add)
+}
+
+func (self Attrs) mut(key, val string, fun func(Attr, string) Attr) Attrs {
+	if key == `` || fun == nil {
+		return self
+	}
+
+	var found bool
+	for ind := range self {
+		if self[ind].Name() == key {
+			self[ind] = fun(self[ind], val)
+			found = true
+		}
+	}
+
+	if found {
+		return self
+	}
+	return append(self, Attr{key, val})
 }
 
 // Mostly for internal use.
@@ -115,6 +158,32 @@ known HTML boolean attrs, listed in `Bool`, the value may be tweaked for better
 spec compliance, or the attr may be omitted entirely.
 */
 func (self Attr) Value() string { return self[1] }
+
+// Returns a modified version with `.Name` replaced with the given input.
+func (self Attr) SetName(val string) Attr {
+	self[0] = val
+	return self
+}
+
+// Returns a modified version with `.Value` replaced with the given input.
+func (self Attr) Set(val string) Attr {
+	self[1] = val
+	return self
+}
+
+/*
+Returns a modified version where the given input is appended to `.Value`,
+space-separated if both values are non-empty.
+*/
+func (self Attr) Add(val string) Attr {
+	if val == `` {
+		return self
+	}
+	if self.Value() == `` {
+		return self.Set(val)
+	}
+	return self.Set(self.Value() + ` ` + val)
+}
 
 // Mostly for internal use.
 func (self Attr) AppendTo(buf []byte) []byte {

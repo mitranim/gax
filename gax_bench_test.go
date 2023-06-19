@@ -12,48 +12,48 @@ import (
 func Test_static_gax(t *testing.T) {
 	eqs(
 		t,
-		`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>`,
 		renderedStatic,
+		`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>`,
 	)
 }
 
 func Test_static_template(t *testing.T) {
 	eq(
 		t,
-		`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>`,
 		templateToString(tplStatic, nil),
+		`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:;base64,="><title>test markup</title></head><body class="stretch-to-viewport"><h1 class="title">mock markup</h1><div class="main">hello world!</div></body></html>`,
 	)
 }
 
 func Test_static_equiv(t *testing.T) {
 	eqs(
 		t,
-		templateToString(tplStatic, nil),
 		renderedStatic,
+		templateToString(tplStatic, nil),
 	)
 }
 
 func Test_dynamic_gax(t *testing.T) {
 	eqs(
 		t,
-		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 		renderDynamic(mockDat),
+		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 	)
 }
 
 func Test_dynamic_template(t *testing.T) {
 	eq(
 		t,
-		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 		templateToString(tplDynamic, mockDat),
+		`<!doctype html><html lang="en"><head><link rel="icon" href="data:;base64,="><title>Posts</title><meta property="og:title" content="Posts"><meta name="description" content="Random notes and thoughts"></head><body><nav><a href="/">home</a><a href="/works">works</a><a href="/posts" aria-current="page">posts</a><a href="/demos">demos</a><span>Updated Apr 05 3123</span></nav><div role="main"><h1>Posts</h1><h2><a href="/posts/post1.html">post 1</a></h2><h2><a href="/posts/post2.html">post 2</a></h2><h2><a href="/posts/post3.html">post 3</a></h2><h2><a href="/posts/post4.html">post 4</a></h2><h2><a href="/posts/post5.html">post 5</a></h2><h2><a href="/posts/post6.html">post 6</a></h2><h2><a href="/posts/post7.html">post 7</a></h2><h2><a href="/posts/post8.html">post 8</a></h2><h2><a href="/posts/post9.html">post 9</a></h2><h2><a href="/posts/post10.html">post 10</a></h2><h2><a href="/posts/post11.html">post 11</a></h2><h2><a href="/posts/post12.html">post 12</a></h2><h2><a href="/posts/post13.html">post 13</a></h2><h2><a href="/posts/post14.html">post 14</a></h2><h2><a href="/posts/post15.html">post 15</a></h2><h2><a href="/posts/post16.html">post 16</a></h2><h2><a href="/posts/post17.html">post 17</a></h2><h2><a href="/posts/post18.html">post 18</a></h2><h2><a href="/posts/post19.html">post 19</a></h2><h2><a href="/posts/post20.html">post 20</a></h2><h2><a href="/posts/post21.html">post 21</a></h2><h2><a href="/posts/post22.html">post 22</a></h2><h2><a href="/posts/post23.html">post 23</a></h2><h2><a href="/posts/post24.html">post 24</a></h2></div></body></html>`,
 	)
 }
 
 func Test_dynamic_equiv(t *testing.T) {
 	eqs(
 		t,
-		templateToString(tplDynamic, mockDat),
 		renderDynamic(mockDat),
+		templateToString(tplDynamic, mockDat),
 	)
 }
 

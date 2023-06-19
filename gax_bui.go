@@ -114,23 +114,23 @@ func (self *Bui) F(vals ...any) {
 func (self *Bui) C(val any) { self.Child(val) }
 
 /*
-Mostly for internal use. Writes regular text without escaping. For writing
-`string`, see `Bui.NonEscString`. For escaping, see `Bui.EscBytes`.
+Mostly for internal use. Writes without escaping. Intended for markup.
+For writing `string`, see `Bui.NonEscString`. For escaping, see `Bui.EscBytes`.
 */
 func (self *Bui) NonEscBytes(val []byte) {
 	*self = append(*self, val...)
 }
 
 /*
-Mostly for internal use. Writes regular text without escaping. For writing
-`[]byte`, see `Bui.NonEscBytes`. For escaping, see `Bui.EscString`.
+Mostly for internal use. Writes without escaping. Intended for markup.
+For writing `[]byte`, see `Bui.NonEscBytes`. For escaping, see `Bui.EscString`.
 */
 func (self *Bui) NonEscString(val string) {
 	*self = append(*self, val...)
 }
 
 /*
-Writes regular text, escaping if necessary. For writing `string`, see
+Writes text content, escaping if necessary. For writing `string`, see
 `Bui.EscString`.
 */
 func (self *Bui) EscBytes(val []byte) {
@@ -138,7 +138,7 @@ func (self *Bui) EscBytes(val []byte) {
 }
 
 /*
-Writes regular text, escaping if necessary. For writing `[]byte`, see
+Writes text content, escaping if necessary. For writing `[]byte`, see
 `Bui.EscBytes`.
 */
 func (self *Bui) EscString(val string) {
